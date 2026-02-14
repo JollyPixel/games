@@ -1,0 +1,27 @@
+{
+  "workspaces": [
+    "games/brackeys-2026-1"
+  ],
+  "scripts": {
+    "build": "npm run build --ws --if-present",
+    "clear": "clear-ts-build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JollyPixel/games.git"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JollyPixel/games/issues"
+  },
+  "homepage": "https://github.com/JollyPixel/games#readme",
+  "devDependencies": {
+    "@openally/config.eslint": "2.2.0",
+    "@openally/config.typescript": "1.2.1",
+    "@types/node": "25.2.3",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.1"
+  }
+}
