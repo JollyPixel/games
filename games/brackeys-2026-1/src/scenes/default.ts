@@ -4,7 +4,7 @@ import {
   Actor,
   Camera3DControls
 } from "@jolly-pixel/engine";
-// import * as THREE from "three";
+import * as THREE from "three";
 
 // Import Internal Dependencies
 import * as components from "../components/index.ts";
@@ -17,7 +17,17 @@ export function createDefaultScene(
   const { debug = false } = options;
 
   const scene = world.scene.getSource();
-  scene.background = null;
+  scene.background = new THREE.Color("lightblue");
+  scene.add(new THREE.AmbientLight("white", 3));
+
+  const map = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ];
 
   /**
    * TODO engine:
@@ -30,6 +40,9 @@ export function createDefaultScene(
   if (debug) {
     game.registerComponent(components.Grid, { ratio: 1, size: 32 });
   }
+
+  new Actor(world, { name: "Map", parent: game })
+    .registerComponent(components.Map, { map });
 
   new Actor(world, { name: "Player", parent: game })
     .registerComponent(components.Player);
@@ -45,7 +58,4 @@ export function createDefaultScene(
         component.camera.lookAt(0, 0, 0);
       }
     );
-
-  new Actor(world, { name: "Map", parent: game })
-    .registerComponent(components.Map);
 }
