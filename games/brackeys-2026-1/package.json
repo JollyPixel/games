@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@jolly-pixel/engine": "1.0.0",
-    "@jolly-pixel/runtime": "1.0.0",
+    "@jolly-pixel/engine": "1.2.0",
+    "@jolly-pixel/runtime": "1.1.0",
     "three": "0.182.0"
   },
   "devDependencies": {

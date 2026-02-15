@@ -20,11 +20,17 @@ export class Shape extends THREE.Mesh {
 
     this.size = size;
     if (color) {
-      this.material = new THREE.MeshLambertMaterial({ color });
+      this.material = new THREE.MeshLambertMaterial({
+        color,
+        transparent: false,
+        opacity: 1
+      });
     }
     else {
       this.material = new THREE.MeshLambertMaterial({
-        map: texture ? new THREE.TextureLoader().load(texture) : undefined
+        map: texture ? new THREE.TextureLoader().load(texture) : undefined,
+        transparent: false,
+        opacity: 1
       });
     }
 

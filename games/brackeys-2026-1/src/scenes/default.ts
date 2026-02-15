@@ -1,8 +1,7 @@
 // Import Third-party Dependencies
 import {
   Systems,
-  Actor,
-  Camera3DControls
+  Actor
 } from "@jolly-pixel/engine";
 import * as THREE from "three";
 
@@ -20,11 +19,11 @@ export function createDefaultScene(
   scene.background = new THREE.Color("lightblue");
   scene.add(new THREE.AmbientLight("white", 3));
 
-  const map = [
+  const grid: components.TileGrid = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, components.TILE_TYPE.Spawn, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
   ];
@@ -42,20 +41,19 @@ export function createDefaultScene(
   }
 
   new Actor(world, { name: "Map", parent: game })
-    .registerComponent(components.Map, { map });
+    .registerComponent(components.Map, { grid });
 
   new Actor(world, { name: "Player", parent: game })
     .registerComponent(components.Player);
 
   new Actor(world, { name: "Camera", parent: game })
-    // TODO: implement a custom Camera for the game
-    // .registerComponent(components.Camera)
-    .registerComponent(
-      Camera3DControls,
-      { speed: 0.25, rotationSpeed: 0.50 },
-      (component) => {
-        component.camera.position.set(5, 5, 5);
-        component.camera.lookAt(0, 0, 0);
-      }
-    );
+    .registerComponent(components.Camera);
+  // .registerComponent(
+  //   Camera3DControls,
+  //   { speed: 0.25, rotationSpeed: 0.50 },
+  //   (component) => {
+  //     component.camera.position.set(5, 12, 5);
+  //     component.camera.lookAt(0, 0, 0);
+  //   }
+  // );
 }
