@@ -5,30 +5,46 @@ import {
 } from "@jolly-pixel/engine";
 import * as THREE from "three";
 
+// Import Internal Dependencies
+import type { Player } from "./Player.ts";
+import * as utils from "../utils/index.ts";
+
 export interface CameraOptions {
   /**
-   * Distance derrière le joueur
-   * @default 4
+   * Distance from the player
+   * @default 8
    */
-  distance?: number;
+  radius?: number;
   /**
-   * Hauteur au-dessus du joueur
-   * @default 3
+   * Angle from top in degrees (0 = directly above, 90 = horizon)
+   * @default 45
    */
-  height?: number;
+  polarAngle?: number;
   /**
-   * Facteur de lissage pour le mouvement de la caméra (0 = pas de lissage, 1 = mouvement instantané)
-   * @default 0.1
+   * Position follow smoothing factor (0 = no smoothing, 1 = instant)
+   * @default 0.05
    */
   smooth?: number;
+  /**
+   * Mouse drag rotation sensitivity
+   * @default 0.003
+   */
+  rotationSpeed?: number;
 }
 
 export class Camera extends ActorComponent {
-  #camera: THREE.PerspectiveCamera;
-  #targetActor: Actor | null = null;
-  #distance: number;
-  #height: number;
+  camera: THREE.PerspectiveCamera;
+
+  #player: Player | null = null;
+  #radius: number;
+  #polarAngle: number;
   #smooth: number;
+  #rotationSpeed: number;
+  #azimuth = 0;
+
+  get azimuth() {
+    return this.#azimuth;
+  }
 
   constructor(
     actor: Actor,
@@ -39,46 +55,60 @@ export class Camera extends ActorComponent {
       typeName: "CameraBehavior"
     });
 
-    this.#distance = options.distance ?? 4;
-    this.#height = options.height ?? 10;
-    this.#smooth = options.smooth ?? 0.01;
+    this.#radius = options.radius ?? 8;
+    this.#polarAngle = (options.polarAngle ?? 45) * (Math.PI / 180);
+    this.#smooth = options.smooth ?? 0.05;
+    this.#rotationSpeed = options.rotationSpeed ?? 0.003;
 
-    this.#camera = new THREE.PerspectiveCamera(
+    this.camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
       0.1,
       100
     );
-    this.actor.gameInstance.renderer.addRenderComponent(this.#camera);
-    this.actor.threeObject.add(this.#camera);
+    this.actor.gameInstance.renderer.addRenderComponent(this.camera);
+    this.actor.threeObject.add(this.camera);
   }
 
   start() {
     const playerActor = this.actor.gameInstance.scene.tree.getActor("Player");
     if (playerActor) {
-      this.#targetActor = playerActor;
+      this.#player = utils.getComponentByName<Player>(playerActor, "PlayerBehavior");
     }
   }
 
   update(
     deltaTime: number
   ) {
-    if (!this.#targetActor) {
+    if (!this.#player) {
       return;
     }
 
-    const targetPos = this.#targetActor.threeObject.position;
-    const cameraPos = this.#camera.position;
+    const { input } = this.actor.gameInstance;
+
+    // Rotate azimuth via right-click drag
+    if (input.isMouseButtonDown("right")) {
+      const delta = input.getMouseDelta();
+      this.#azimuth -= delta.x * this.#rotationSpeed;
+    }
+
+    const targetPos = this.#player.visualPosition;
+
+    // Spherical to cartesian offset
+    const x = this.#radius * Math.sin(this.#polarAngle) * Math.sin(this.#azimuth);
+    const z = this.#radius * Math.sin(this.#polarAngle) * Math.cos(this.#azimuth);
+    const y = this.#radius * Math.cos(this.#polarAngle);
 
     const desired = new THREE.Vector3(
-      targetPos.x - this.#distance,
-      targetPos.y + this.#height,
-      targetPos.z - this.#distance
+      targetPos.x + x,
+      targetPos.y + y,
+      targetPos.z + z
     );
 
+    // Frame-rate-independent smooth follow
     const lerpFactor = 1 - Math.pow(1 - this.#smooth, deltaTime * 60);
-    cameraPos.lerp(desired, lerpFactor);
+    this.camera.position.lerp(desired, lerpFactor);
 
-    this.#camera.lookAt(targetPos);
+    this.camera.lookAt(targetPos);
   }
 }

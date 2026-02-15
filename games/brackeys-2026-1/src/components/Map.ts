@@ -7,6 +7,7 @@ import * as THREE from "three";
 
 // Import Internal Dependencies
 import { Cube } from "./map/Cube.ts";
+import { createTileHighlight } from "./map/TileHighlight.ts";
 
 // CONSTANTS
 export const TILE_TYPE = Object.freeze({
@@ -101,10 +102,13 @@ export class Map extends ActorComponent {
 
   #initTerrainFloor() {
     const floorGeometry = new THREE.PlaneGeometry(this.width, this.height);
-    const floorMaterial = new THREE.MeshLambertMaterial({
-      color: new THREE.Color("black")
+    const floorMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(0x111111),
+      metalness: 0.0,
+      roughness: 0.85
     });
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    // floor.receiveShadow = true;
 
     // Positionne le sol au centre de la grille
     floor.position.set(
@@ -136,8 +140,21 @@ export class Map extends ActorComponent {
         size: 1,
         texture: TILE_TEXTURE[tile]
       });
+      wall.material = new THREE.MeshStandardMaterial({
+        map: new THREE.TextureLoader().load(TILE_TEXTURE[tile]),
+        emissive: new THREE.Color(0x556677),
+        emissiveIntensity: 0,
+        metalness: 0.5,
+        roughness: 0
+      });
+      wall.castShadow = true;
       wall.position.set(x, 0.5, z);
       this.actor.threeObject.add(wall);
     }
+
+    // Spawn point highlight
+    const spawnHighlight = createTileHighlight({ color: 0x0066ff });
+    spawnHighlight.position.set(this.spawnPoint.x, 0.01, this.spawnPoint.z);
+    this.actor.threeObject.add(spawnHighlight);
   }
 }

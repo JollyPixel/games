@@ -1,9 +1,12 @@
 // Import Third-party Dependencies
 import {
   Systems,
-  Actor
+  Actor,
+  createViewHelper
 } from "@jolly-pixel/engine";
 import * as THREE from "three";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 // Import Internal Dependencies
 import * as components from "../components/index.ts";
@@ -14,10 +17,15 @@ export function createDefaultScene(
   options: SceneOptions = {}
 ) {
   const { debug = false } = options;
+  world.renderer.setRenderMode("composer");
+
+  const webglRenderer = world.renderer.getSource();
+  webglRenderer.shadowMap.enabled = true;
+  webglRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = world.scene.getSource();
-  scene.background = new THREE.Color("lightblue");
-  scene.add(new THREE.AmbientLight("white", 3));
+  scene.background = new THREE.Color(0x000000);
+  scene.add(new THREE.AmbientLight("white", 0));
 
   const grid: components.TileGrid = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -47,13 +55,12 @@ export function createDefaultScene(
     .registerComponent(components.Player);
 
   new Actor(world, { name: "Camera", parent: game })
-    .registerComponent(components.Camera);
-  // .registerComponent(
-  //   Camera3DControls,
-  //   { speed: 0.25, rotationSpeed: 0.50 },
-  //   (component) => {
-  //     component.camera.position.set(5, 12, 5);
-  //     component.camera.lookAt(0, 0, 0);
-  //   }
-  // );
+    .registerComponent(components.Camera, void 0, (component) => {
+      world.renderer.setEffects(
+        new UnrealBloomPass(world.input.getScreenSize(), 0.25, 0.1, 0.25),
+        new OutputPass()
+      );
+
+      createViewHelper(component.camera, world);
+    });
 }
