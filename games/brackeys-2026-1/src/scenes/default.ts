@@ -9,14 +9,15 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 // Import Internal Dependencies
+import { SelectiveGlitchPass } from "../passes/SelectiveGlitchPass.ts";
 import * as components from "../components/index.ts";
 import type { SceneOptions } from "./types.ts";
 
 export function createDefaultScene(
   world: Systems.GameInstance,
-  options: SceneOptions = {}
+  _options: SceneOptions = {}
 ) {
-  const { debug = false } = options;
+  // const { debug = false } = options;
   world.renderer.setRenderMode("composer");
 
   const webglRenderer = world.renderer.getSource();
@@ -27,13 +28,15 @@ export function createDefaultScene(
   scene.background = new THREE.Color(0x000000);
   scene.add(new THREE.AmbientLight("white", 0));
 
+  const { Spawn } = components.TILE_TYPE;
+
   const grid: components.TileGrid = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, components.TILE_TYPE.Spawn, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    [2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2],
+    [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+    [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+    [2, 0, 0, 0, 0, 0, 0, 0, Spawn, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+    [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+    [2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2]
   ];
 
   /**
@@ -44,9 +47,9 @@ export function createDefaultScene(
    */
 
   const game = new Actor(world, { name: "GameRootEntity" });
-  if (debug) {
-    game.registerComponent(components.Grid, { ratio: 1, size: 32 });
-  }
+
+  new Actor(world, { name: "Grid", parent: game })
+    .registerComponent(components.Grid, { ratio: 2, size: 32 });
 
   new Actor(world, { name: "Map", parent: game })
     .registerComponent(components.Map, { grid });
@@ -56,10 +59,11 @@ export function createDefaultScene(
 
   new Actor(world, { name: "Camera", parent: game })
     .registerComponent(components.Camera, void 0, (component) => {
-      world.renderer.setEffects(
-        new UnrealBloomPass(world.input.getScreenSize(), 0.25, 0.1, 0.25),
-        new OutputPass()
-      );
+      const bloomPass = new UnrealBloomPass(world.input.getScreenSize(), 0.25, 0.1, 0.25);
+      const selectiveGlitch = new SelectiveGlitchPass(scene, component.camera);
+      const outputPass = new OutputPass();
+
+      world.renderer.setEffects(bloomPass, selectiveGlitch, outputPass);
 
       createViewHelper(component.camera, world);
     });

@@ -11,6 +11,7 @@ import { Cube } from "./map/Cube.ts";
 import type { Map } from "./Map.ts";
 import type { Camera } from "./Camera.ts";
 import { EventsMap } from "../events.ts";
+import { GLITCH_LAYER } from "../constants.ts";
 import * as utils from "../utils/index.ts";
 
 export interface PlayerOptions {
@@ -64,6 +65,7 @@ export class Player extends ActorComponent {
       emissiveIntensity: 0.4
     });
     this.#cube.castShadow = true;
+    this.#cube.layers.enable(GLITCH_LAYER);
     this.actor.threeObject.add(this.#cube);
 
     const light = new THREE.PointLight(0x00ff44, 2, 12, 1.5);

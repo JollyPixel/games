@@ -1,2 +1,1 @@
-// TODO:
-// GAME CONSTANTS HERE
+export const GLITCH_LAYER = 1;
