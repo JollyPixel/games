@@ -8,6 +8,7 @@ import * as THREE from "three";
 // Import Internal Dependencies
 import { Cube } from "./map/Cube.ts";
 import type { Map } from "./Map.ts";
+import { EventsMap } from "../events.ts";
 import * as utils from "../utils/index.ts";
 
 export interface PlayerOptions {
@@ -33,6 +34,7 @@ export class Player extends ActorComponent {
   }
 
   warpToSpawn() {
+    EventsMap.PlayerRespawned.emit();
     this.actor.transform.setLocalPosition(this.#map.spawnPoint);
     this.#targetPosition = this.#map.spawnPoint.clone();
   }
