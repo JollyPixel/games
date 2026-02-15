@@ -1,0 +1,2 @@
+// TODO:
+// GAME CONSTANTS HERE
