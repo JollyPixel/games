@@ -6,15 +6,13 @@ import {
 import * as THREE from "three";
 
 // Import Internal Dependencies
-import { Cube, DemiCube, createTileHighlight } from "./map/index.ts";
-import { GLITCH_LAYER } from "../constants.ts";
+import { Cube, DemiCube } from "./map/index.ts";
 
 // CONSTANTS
 export const TILE_TYPE = Object.freeze({
   Empty: 0,
   Wall: 1,
-  DemiWall: 2,
-  Spawn: Symbol("Spawn")
+  DemiWall: 2
 }) satisfies Record<string, Tile>;
 
 export const TILE_TEXTURE = {
@@ -26,27 +24,36 @@ const kDefaultGrid = [
   [TILE_TYPE.Wall]
 ];
 
-export type Tile = number | symbol;
+export type Tile = number | string;
+export type TilePosition = THREE.Vector3;
 export type TileGrid = Tile[][];
 
-export interface MapOptions {
+export type CustomInitCallback = (position: TilePosition) => THREE.Object3D | void;
+
+export interface CustomTileMetadata {
+  onInit?: CustomInitCallback;
+  tiles: {
+    position: TilePosition;
+  }[];
+}
+
+export interface VoxelMapOptions {
   grid?: TileGrid;
 }
 
-export class Map extends ActorComponent {
+export class VoxelMap extends ActorComponent {
   static Y = 0;
 
   height: number;
   width: number;
   grid: TileGrid;
 
-  spawnPoint: THREE.Vector3;
-
   #walkableTiles = new Set<`${number}.${number}`>();
+  #customTiles: globalThis.Map<string, CustomTileMetadata> = new globalThis.Map();
 
   constructor(
     actor: Actor,
-    options: MapOptions = {}
+    options: VoxelMapOptions = {}
   ) {
     super({
       actor,
@@ -63,8 +70,6 @@ export class Map extends ActorComponent {
     this.grid = grid;
     this.height = grid.length;
     this.width = grid[0].length;
-
-    this.#preloadTerrainEntities();
   }
 
   * [Symbol.iterator]() {
@@ -80,7 +85,29 @@ export class Map extends ActorComponent {
   }
 
   awake(): void {
+    this.#preloadTerrainEntities();
     this.#initTerrain();
+  }
+
+  addCustomTile(
+    name: string,
+    onInit?: CustomInitCallback
+  ) {
+    this.#customTiles.set(name, {
+      onInit,
+      tiles: []
+    });
+  }
+
+  getCustomTileFirstPosition(
+    name: string
+  ): TilePosition | null {
+    const tileData = this.#customTiles.get(name);
+    if (!tileData || tileData.tiles.length === 0) {
+      return null;
+    }
+
+    return tileData.tiles[0].position;
   }
 
   isWalkable(
@@ -92,8 +119,14 @@ export class Map extends ActorComponent {
 
   #preloadTerrainEntities() {
     for (const { tile, x, z } of this) {
-      if (tile === TILE_TYPE.Spawn) {
-        this.spawnPoint = new THREE.Vector3(x, 0.5, z);
+      if (typeof tile === "string" && this.#customTiles.has(tile)) {
+        const customTileData = this.#customTiles.get(tile)!;
+        const position = new THREE.Vector3(x, VoxelMap.Y, z);
+        const object3D = customTileData.onInit?.(position);
+        if (object3D) {
+          this.actor.threeObject.add(object3D);
+        }
+        customTileData.tiles.push({ position });
       }
 
       if (tile !== TILE_TYPE.Wall && tile !== TILE_TYPE.DemiWall) {
@@ -167,11 +200,5 @@ export class Map extends ActorComponent {
         this.actor.threeObject.add(wall);
       }
     }
-
-    // Spawn point highlight
-    const spawnHighlight = createTileHighlight({ color: 0x0066ff });
-    spawnHighlight.position.set(this.spawnPoint.x, 0.01, this.spawnPoint.z);
-    spawnHighlight.layers.enable(GLITCH_LAYER);
-    this.actor.threeObject.add(spawnHighlight);
   }
 }

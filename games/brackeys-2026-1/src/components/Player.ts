@@ -8,7 +8,7 @@ import * as THREE from "three";
 
 // Import Internal Dependencies
 import { Cube } from "./map/Cube.ts";
-import type { Map } from "./Map.ts";
+import type { VoxelMap } from "./Map.ts";
 import type { Camera } from "./Camera.ts";
 import type { Overlay } from "./Overlay.ts";
 import { EventsMap } from "../events.ts";
@@ -22,7 +22,7 @@ export interface PlayerOptions {
 export class Player extends ActorComponent {
   #paused = false;
 
-  #map: Map;
+  #map: VoxelMap;
   #camera: Camera;
   #overlay: Overlay;
 
@@ -54,7 +54,13 @@ export class Player extends ActorComponent {
 
   warpToSpawn() {
     EventsMap.PlayerRespawned.emit();
-    this.actor.transform.setLocalPosition(this.#map.spawnPoint);
+    const spawn = this.#map.getCustomTileFirstPosition("Spawn")?.clone();
+    if (!spawn) {
+      throw new Error("Spawn point not found");
+    }
+    spawn.y += 0.5;
+
+    this.actor.transform.setLocalPosition(spawn);
     this.#cube.position.set(0, 0, 0);
     this.#cube.quaternion.identity();
   }
@@ -83,7 +89,7 @@ export class Player extends ActorComponent {
   start() {
     const { tree } = this.actor.gameInstance.scene;
 
-    this.#map = utils.getComponentByName<Map>(
+    this.#map = utils.getComponentByName<VoxelMap>(
       tree.getActor("Map")!,
       "MapBehavior"
     );
