@@ -16,40 +16,60 @@ import { GLITCH_LAYER } from "../constants.ts";
 import * as utils from "../utils/index.ts";
 
 export interface PlayerOptions {
+  /**
+   * Duration of the roll animation in seconds.
+   * @default 0.15
+   */
+  rollDuration?: number;
 
+  /**
+   * Cooldown between roll moves in milliseconds.
+   * @default 10
+   */
+  rollMoveCoolDown?: number;
 }
 
 export class Player extends ActorComponent {
+  // TODO: should not be here
   #paused = false;
 
+  // Actors and components
   #map: VoxelMap;
   #camera: Camera;
   #overlay: Overlay;
 
-  #cube: Cube;
-  #moving = false;
-  #moveCooldown = 10;
-  #lastMoveTime = 0;
+  #mesh: Cube;
 
-  // Roll animation state
+  // Player animation state
+  #moving = false;
   #rollProgress = 0;
   #rollDuration = 0.15;
+  #rollLastMoveTime = 0;
+  #rollMoveCoolDown = 10;
   #rollAxis = new THREE.Vector3();
   #rollPivot = new THREE.Vector3();
   #rollStartQuat = new THREE.Quaternion();
 
   get visualPosition() {
-    return this.#cube.getWorldPosition(new THREE.Vector3());
+    return this.#mesh.getWorldPosition(new THREE.Vector3());
   }
 
   constructor(
     actor: Actor,
-    _options: PlayerOptions = {}
+    options: PlayerOptions = {}
   ) {
     super({
       actor,
       typeName: "PlayerBehavior"
     });
+
+    const {
+      rollDuration = 0.15,
+      rollMoveCoolDown = 10
+    } = options;
+
+    this.#rollDuration = rollDuration;
+    this.#rollMoveCoolDown = rollMoveCoolDown;
   }
 
   warpToSpawn() {
@@ -61,23 +81,23 @@ export class Player extends ActorComponent {
     spawn.y += 0.5;
 
     this.actor.transform.setLocalPosition(spawn);
-    this.#cube.position.set(0, 0, 0);
-    this.#cube.quaternion.identity();
+    this.#mesh.position.set(0, 0, 0);
+    this.#mesh.quaternion.identity();
   }
 
   awake(): void {
-    this.#cube = new Cube({
+    this.#mesh = new Cube({
       size: 1,
       color: new THREE.Color("green")
     });
-    this.#cube.material = new THREE.MeshLambertMaterial({
+    this.#mesh.material = new THREE.MeshLambertMaterial({
       color: new THREE.Color("green"),
       emissive: new THREE.Color(0x00ff44),
       emissiveIntensity: 0.4
     });
-    this.#cube.castShadow = true;
-    this.#cube.layers.enable(GLITCH_LAYER);
-    this.actor.threeObject.add(this.#cube);
+    this.#mesh.castShadow = true;
+    this.#mesh.layers.enable(GLITCH_LAYER);
+    this.actor.threeObject.add(this.#mesh);
 
     const light = new THREE.PointLight(0x00ff44, 2, 12, 1.5);
     // light.castShadow = true;
@@ -117,6 +137,7 @@ export class Player extends ActorComponent {
     const { input } = this.actor.gameInstance;
     const now = performance.now();
 
+    // JUST FOR TESTING: respawn on R key
     if (input.wasKeyJustPressed("KeyR")) {
       this.#paused = true;
       this.#overlay.fadeIn(() => {
@@ -126,17 +147,15 @@ export class Player extends ActorComponent {
       });
     }
 
-    // Animate rolling
     if (this.#moving) {
       this.#rollProgress += deltaTime / this.#rollDuration;
 
       if (this.#rollProgress >= 1) {
-        // Snap: finalize rotation, reset local position
         this.#rollProgress = 1;
         this.#applyRoll(1);
-        this.#cube.position.set(0, 0, 0);
+        this.#mesh.position.set(0, 0, 0);
         this.#moving = false;
-        this.#lastMoveTime = now;
+        this.#rollLastMoveTime = now;
       }
       else {
         this.#applyRoll(this.#rollProgress);
@@ -145,15 +164,12 @@ export class Player extends ActorComponent {
       return;
     }
 
-    // Cooldown
-    if (now - this.#lastMoveTime < this.#moveCooldown) {
+    if (now - this.#rollLastMoveTime < this.#rollMoveCoolDown) {
       return;
     }
 
-    // Raw input in camera-local space (forward = W, right = D)
     let forward = 0;
     let right = 0;
-
     if (input.wasKeyJustPressed("KeyW")) {
       forward += 1;
     }
@@ -193,7 +209,6 @@ export class Player extends ActorComponent {
 
       if (this.#map.isWalkable(nextX, nextZ)) {
         this.#startRoll(dx, dz);
-        // Snap actor position to target immediately (cube mesh animates visually)
         this.actor.threeObject.position.set(nextX, current.y, nextZ);
       }
     }
@@ -214,10 +229,10 @@ export class Player extends ActorComponent {
     this.#rollAxis.set(dz, 0, -dx).normalize();
 
     // Save current rotation as start
-    this.#rollStartQuat.copy(this.#cube.quaternion);
+    this.#rollStartQuat.copy(this.#mesh.quaternion);
 
     // Offset the cube mesh back by (-dx, 0, -dz) since we already snapped actor position forward
-    this.#cube.position.set(-dx, 0, -dz);
+    this.#mesh.position.set(-dx, 0, -dz);
   }
 
   #applyRoll(
@@ -246,9 +261,9 @@ export class Player extends ActorComponent {
     arm.applyQuaternion(rollQuat);
 
     // New position = pivot + rotated arm
-    this.#cube.position.copy(pivot).add(arm);
+    this.#mesh.position.copy(pivot).add(arm);
 
     // New rotation = rollQuat * startQuat
-    this.#cube.quaternion.copy(rollQuat).multiply(this.#rollStartQuat);
+    this.#mesh.quaternion.copy(rollQuat).multiply(this.#rollStartQuat);
   }
 }

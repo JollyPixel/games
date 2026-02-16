@@ -2,10 +2,30 @@
 import * as THREE from "three";
 
 export interface TileHighlightOptions {
+  /**
+   * Highlight color
+   * @default 0x0066ff
+   */
   color?: THREE.ColorRepresentation;
+  /**
+   * Emissive strength
+   * @default 1.5
+   */
   emissiveIntensity?: number;
+  /**
+   * Border thickness
+   * @default 0.06
+   */
   borderWidth?: number;
+  /**
+   * Light strength
+   * @default 1.5
+   */
   lightIntensity?: number;
+  /**
+   * Light range
+   * @default 6
+   */
   lightDistance?: number;
 }
 

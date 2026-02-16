@@ -6,20 +6,26 @@ import {
   ActorComponent,
   type Actor
 } from "@jolly-pixel/engine";
-// import * as THREE from "three";
 
 export interface GridOptions {
+  /**
+   * The total half-size of the grid, in world units. The grid will extend from -size to +size.
+   * @default 50
+   */
   size?: number;
-  direction?: number;
+
+  /**
+   * The spacing between grid lines, in world units. Must be > 0.
+   * @default 1
+   */
   ratio: number;
 }
 
 export class Grid extends ActorComponent {
-  size: number;
-  direction: number;
-  ratio: number;
+  #size: number;
+  #ratio: number;
 
-  mesh: LineSegments2 | null;
+  #mesh: LineSegments2 | null;
   #elapsed = 0;
 
   constructor(
@@ -33,28 +39,26 @@ export class Grid extends ActorComponent {
   setIsLayerActive(
     active: boolean
   ) {
-    if (this.mesh !== null) {
-      this.mesh.visible = active;
+    if (this.#mesh !== null) {
+      this.#mesh.visible = active;
     }
   }
 
   setGrid(
     options: GridOptions
   ) {
-    const { size = 50, direction = 1, ratio } = options;
+    const { size = 50, ratio = 1 } = options;
+
     this.clearMesh();
-
-    this.size = size;
-    this.direction = direction;
-    this.ratio = ratio;
-
+    this.#size = size;
+    this.#ratio = ratio;
     this.createMesh();
   }
 
   resize(
     value: number
   ) {
-    this.size = value;
+    this.#size = value;
     this.clearMesh();
     this.createMesh();
   }
@@ -62,19 +66,19 @@ export class Grid extends ActorComponent {
   setRatio(
     ratio: number
   ) {
-    this.ratio = ratio;
+    this.#ratio = ratio;
     this.clearMesh();
     this.createMesh();
   }
 
   createMesh() {
-    const size = this.ratio * this.size;
+    const size = this.#ratio * this.#size;
 
     const positions: number[] = [];
-    for (let i = -size; i <= size; i += this.ratio) {
-      // lignes parallèles à X
+    for (let i = -size; i <= size; i += this.#ratio) {
+      // X
       positions.push(-size, 0, i, size, 0, i);
-      // lignes parallèles à Z
+      // Z
       positions.push(i, 0, -size, i, 0, size);
     }
 
@@ -88,44 +92,46 @@ export class Grid extends ActorComponent {
       transparent: true
     });
 
-    this.mesh = new LineSegments2(geometry, material);
-    this.mesh.position.y = -0.5;
-    this.mesh.computeLineDistances();
+    this.#mesh = new LineSegments2(geometry, material);
+    this.#mesh.position.y = -0.5;
+    this.#mesh.computeLineDistances();
 
-    this.actor.threeObject.add(this.mesh);
+    this.actor.threeObject.add(this.#mesh);
   }
 
   clearMesh() {
-    if (!this.mesh) {
+    if (!this.#mesh) {
       return;
     }
 
-    this.mesh.geometry.dispose();
-    if (Array.isArray(this.mesh.material)) {
-      this.mesh.material.forEach((material) => material.dispose());
+    this.#mesh.geometry.dispose();
+    if (Array.isArray(this.#mesh.material)) {
+      this.#mesh.material.forEach((material) => material.dispose());
     }
     else {
-      this.mesh.material.dispose();
+      this.#mesh.material.dispose();
     }
-    this.actor.threeObject.remove(this.mesh);
-    this.mesh = null;
+    this.actor.threeObject.remove(this.#mesh);
+    this.#mesh = null;
   }
 
-  update(deltaTime: number) {
-    if (!this.mesh) {
+  update(
+    deltaTime: number
+  ) {
+    if (!this.#mesh) {
       return;
     }
 
     this.#elapsed += deltaTime;
     const pulse = 0.6 + (0.6 * Math.sin(this.#elapsed * 1.1));
-    const mat = this.mesh.material as LineMaterial;
+    const mat = this.#mesh.material as LineMaterial;
     mat.color.setRGB(0, pulse, pulse * 0.27);
 
-    this.mesh.position.x = Math.sin(this.#elapsed * 0.2) * 0.5;
-    this.mesh.position.z = Math.cos(this.#elapsed * 0.15) * 0.5;
+    this.#mesh.position.x = Math.sin(this.#elapsed * 0.2) * 0.5;
+    this.#mesh.position.z = Math.cos(this.#elapsed * 0.15) * 0.5;
   }
 
-  override destroy() {
+  destroy() {
     this.clearMesh();
     super.destroy();
   }
