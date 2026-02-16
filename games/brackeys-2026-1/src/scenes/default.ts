@@ -43,9 +43,7 @@ export function createDefaultScene(
    * - rename registerComponent -> addComponent
    */
 
-  const game = new Actor(world, { name: "GameRootEntity" });
-
-  new Actor(world, { name: "Grid", parent: game })
+  const game = new Actor(world, { name: "Game" })
     .registerComponent(components.Grid, { ratio: 2, size: 32 });
 
   new Actor(world, { name: "Map", parent: game })
@@ -54,8 +52,12 @@ export function createDefaultScene(
   new Actor(world, { name: "Player", parent: game })
     .registerComponent(components.Player);
 
+  let overlayPass: components.Overlay["pass"];
   new Actor(world, { name: "Camera", parent: game })
+    .registerComponent(components.Overlay, void 0, (overlay) => {
+      overlayPass = overlay.pass;
+    })
     .registerComponent(components.Camera, void 0, (component) => {
-      initializeRenderPass(component.camera);
+      initializeRenderPass(component.camera, overlayPass);
     });
 }

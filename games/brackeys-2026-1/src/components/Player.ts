@@ -10,6 +10,7 @@ import * as THREE from "three";
 import { Cube } from "./map/Cube.ts";
 import type { Map } from "./Map.ts";
 import type { Camera } from "./Camera.ts";
+import type { Overlay } from "./Overlay.ts";
 import { EventsMap } from "../events.ts";
 import { GLITCH_LAYER } from "../constants.ts";
 import * as utils from "../utils/index.ts";
@@ -19,8 +20,12 @@ export interface PlayerOptions {
 }
 
 export class Player extends ActorComponent {
+  #paused = false;
+
   #map: Map;
   #camera: Camera;
+  #overlay: Overlay;
+
   #cube: Cube;
   #moving = false;
   #moveCooldown = 10;
@@ -76,18 +81,22 @@ export class Player extends ActorComponent {
   }
 
   start() {
-    const mapActor = this.actor.gameInstance.scene.tree.getActor("Map");
-    if (!mapActor) {
-      throw new Error("Map actor not found");
-    }
+    const { tree } = this.actor.gameInstance.scene;
 
-    this.#map = utils.getComponentByName<Map>(mapActor, "MapBehavior");
+    this.#map = utils.getComponentByName<Map>(
+      tree.getActor("Map")!,
+      "MapBehavior"
+    );
 
-    const cameraActor = this.actor.gameInstance.scene.tree.getActor("Camera");
-    if (!cameraActor) {
-      throw new Error("Camera actor not found");
-    }
-    this.#camera = utils.getComponentByName<Camera>(cameraActor, "CameraBehavior");
+    const cameraActor = tree.getActor("Camera")!;
+    this.#camera = utils.getComponentByName<Camera>(
+      cameraActor,
+      "CameraBehavior"
+    );
+    this.#overlay = utils.getComponentByName<Overlay>(
+      cameraActor,
+      "Overlay"
+    );
 
     this.warpToSpawn();
   }
@@ -95,8 +104,21 @@ export class Player extends ActorComponent {
   update(
     deltaTime: number
   ) {
+    if (this.#paused) {
+      return;
+    }
+
     const { input } = this.actor.gameInstance;
     const now = performance.now();
+
+    if (input.wasKeyJustPressed("KeyR")) {
+      this.#paused = true;
+      this.#overlay.fadeIn(() => {
+        this.warpToSpawn();
+        this.#overlay.fadeOut();
+        this.#paused = false;
+      });
+    }
 
     // Animate rolling
     if (this.#moving) {

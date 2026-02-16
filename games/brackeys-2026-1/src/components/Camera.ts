@@ -60,9 +60,10 @@ export class Camera extends ActorComponent {
     this.#smooth = options.smooth ?? 0.05;
     this.#rotationSpeed = options.rotationSpeed ?? 0.003;
 
+    const screenSize = this.actor.gameInstance.input.getScreenSize();
     this.camera = new THREE.PerspectiveCamera(
       75,
-      window.innerWidth / window.innerHeight,
+      screenSize.width / screenSize.height,
       0.1,
       100
     );
@@ -86,7 +87,6 @@ export class Camera extends ActorComponent {
 
     const { input } = this.actor.gameInstance;
 
-    // Rotate azimuth via right-click drag
     if (input.isMouseButtonDown("right")) {
       const delta = input.getMouseDelta();
       this.#azimuth -= delta.x * this.#rotationSpeed;
@@ -105,7 +105,6 @@ export class Camera extends ActorComponent {
       targetPos.z + z
     );
 
-    // Frame-rate-independent smooth follow
     const lerpFactor = 1 - Math.pow(1 - this.#smooth, deltaTime * 60);
     this.camera.position.lerp(desired, lerpFactor);
 

@@ -6,9 +6,11 @@ import {
 import * as THREE from "three";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import type { Pass } from "three/addons/postprocessing/Pass.js";
 
 // Import Internal Dependencies
 import { SelectiveGlitchPass } from "./SelectiveGlitchPass.ts";
+import type { OverlayPass } from "./OverlayPass.ts";
 
 export interface WorldRenderPassOptions {
   /**
@@ -31,7 +33,7 @@ export function createWorldRenderPass(
   } = options;
   world.renderer.setRenderMode(renderMode);
 
-  return (camera: THREE.Camera) => {
+  return (camera: THREE.Camera, overlayPass?: OverlayPass) => {
     const scene = world.scene.getSource();
     if (debug) {
       createViewHelper(camera, world);
@@ -41,7 +43,7 @@ export function createWorldRenderPass(
       return;
     }
 
-    world.renderer.setEffects(
+    const effects: Pass[] = [
       new UnrealBloomPass(
         world.input.getScreenSize(),
         0.25,
@@ -50,6 +52,11 @@ export function createWorldRenderPass(
       ),
       new SelectiveGlitchPass(scene, camera),
       new OutputPass()
-    );
+    ];
+    if (overlayPass) {
+      effects.push(overlayPass);
+    }
+
+    world.renderer.setEffects(...effects);
   };
 }
