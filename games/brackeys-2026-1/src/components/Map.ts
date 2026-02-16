@@ -6,9 +6,7 @@ import {
 import * as THREE from "three";
 
 // Import Internal Dependencies
-import { Cube } from "./map/Cube.ts";
-import { DemiCube } from "./map/DemiCube.ts";
-import { createTileHighlight } from "./map/TileHighlight.ts";
+import { Cube, DemiCube, createTileHighlight } from "./map/index.ts";
 import { GLITCH_LAYER } from "../constants.ts";
 
 // CONSTANTS
