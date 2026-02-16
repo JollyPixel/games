@@ -4,7 +4,10 @@
     "outDir": "dist",
     "rootDir": "src",
     "noImplicitOverride": false,
-    "noEmit": true
+    "noEmit": true,
+    "types": [
+      "vite-plugin-glsl/ext"
+    ]
   },
   "include": [
     "src"

@@ -1,24 +1,21 @@
 // Import Third-party Dependencies
 import {
   Systems,
-  Actor,
-  createViewHelper
+  Actor
 } from "@jolly-pixel/engine";
 import * as THREE from "three";
-import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 // Import Internal Dependencies
-import { SelectiveGlitchPass } from "../passes/SelectiveGlitchPass.ts";
+import { createWorldRenderPass } from "../passes/index.ts";
 import * as components from "../components/index.ts";
 import type { SceneOptions } from "./types.ts";
 
 export function createDefaultScene(
   world: Systems.GameInstance,
-  _options: SceneOptions = {}
+  options: SceneOptions = {}
 ) {
-  // const { debug = false } = options;
-  world.renderer.setRenderMode("composer");
+  const { debug = false } = options;
+  const initializeRenderPass = createWorldRenderPass(world, { debug });
 
   const webglRenderer = world.renderer.getSource();
   webglRenderer.shadowMap.enabled = true;
@@ -59,12 +56,6 @@ export function createDefaultScene(
 
   new Actor(world, { name: "Camera", parent: game })
     .registerComponent(components.Camera, void 0, (component) => {
-      const bloomPass = new UnrealBloomPass(world.input.getScreenSize(), 0.25, 0.1, 0.25);
-      const selectiveGlitch = new SelectiveGlitchPass(scene, component.camera);
-      const outputPass = new OutputPass();
-
-      world.renderer.setEffects(bloomPass, selectiveGlitch, outputPass);
-
-      createViewHelper(component.camera, world);
+      initializeRenderPass(component.camera);
     });
 }
