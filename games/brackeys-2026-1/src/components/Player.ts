@@ -214,6 +214,12 @@ export class Player extends ActorComponent {
     }
   }
 
+  destroy() {
+    this.#mesh.geometry.dispose();
+    (this.#mesh.material as THREE.Material).dispose();
+    super.destroy();
+  }
+
   #startRoll(
     dx: number,
     dz: number

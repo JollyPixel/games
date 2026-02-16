@@ -89,6 +89,16 @@ export class VoxelMap extends ActorComponent {
     this.#initTerrain();
   }
 
+  destroy() {
+    this.actor.threeObject.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.geometry.dispose();
+        (child.material as THREE.Material).dispose();
+      }
+    });
+    super.destroy();
+  }
+
   addCustomTile(
     name: string,
     onInit?: CustomInitCallback

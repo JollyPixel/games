@@ -8,8 +8,6 @@ import * as THREE from "three";
 // Import Internal Dependencies
 import { createWorldRenderPass } from "../passes/index.ts";
 import * as components from "../components/index.ts";
-import { createTileHighlight } from "../components/map/TileHighlight.ts";
-import { GLITCH_LAYER } from "../constants.ts";
 import type { SceneOptions } from "./types.ts";
 
 export function createDefaultScene(
@@ -49,11 +47,16 @@ export function createDefaultScene(
   new Actor(world, { name: "Map", parent: game })
     .registerComponent(components.VoxelMap, { grid }, (component) => {
       component.addCustomTile("Spawn", (position) => {
-        const spawnHighlight = createTileHighlight({ color: 0x0066ff });
-        spawnHighlight.position.set(position.x, 0.01, position.z);
-        spawnHighlight.layers.enable(GLITCH_LAYER);
+        const tile = component.actor.registerComponentAndGet(components.LightedTile, {
+          color: 0x0066ff,
+          pulse: { min: 0.25, max: 1, duration: 1500 }
+        });
+        tile.setPosition(position);
+        setTimeout(() => {
+          tile.disable();
+        }, 10_000);
 
-        return spawnHighlight;
+        return tile.group;
       });
     });
 

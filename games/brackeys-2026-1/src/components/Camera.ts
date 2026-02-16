@@ -110,4 +110,9 @@ export class Camera extends ActorComponent {
 
     this.camera.lookAt(targetPos);
   }
+
+  destroy() {
+    this.actor.gameInstance.renderer.removeRenderComponent(this.camera);
+    super.destroy();
+  }
 }
