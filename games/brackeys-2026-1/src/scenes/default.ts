@@ -75,7 +75,7 @@ export function createDefaultScene(
   const grid = new Voxel.Grid(
     [
       [2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2],
-      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+      [2, "TP_A", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "TP_B", 2],
       [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
       [2, 0, 0, 0, 0, 0, 0, 0, "Spawn", 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
       [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
@@ -90,6 +90,32 @@ export function createDefaultScene(
       color: 0x0066ff,
       pulse: { min: 0.25, max: 1, duration: 1500 },
       positionalAudio: {}
+    });
+    tile.setPosition(position);
+
+    return tile.group;
+  });
+  grid.customTile.add("TP_A", (actor, position) => {
+    actor.registerComponent(components.Teleport, {
+      destination: "TP_B",
+      position
+    });
+
+    const tile = actor.registerComponentAndGet(components.LightedTile, {
+      color: new THREE.Color("tomato")
+    });
+    tile.setPosition(position);
+
+    return tile.group;
+  });
+  grid.customTile.add("TP_B", (actor, position) => {
+    actor.registerComponent(components.Teleport, {
+      destination: "TP_A",
+      position
+    });
+
+    const tile = actor.registerComponentAndGet(components.LightedTile, {
+      color: new THREE.Color("green")
     });
     tile.setPosition(position);
 

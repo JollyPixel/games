@@ -111,6 +111,7 @@ export class LightedTile extends ActorComponent<GameContext> {
   #enabled = true;
   #disabledOpacity: number;
   #disabledColor: THREE.Color;
+  #positionalAudio: THREE.PositionalAudio | null = null;
 
   constructor(
     actor: Actor<GameContext>,
@@ -186,7 +187,7 @@ export class LightedTile extends ActorComponent<GameContext> {
         loop: true
       }
     ).then((positionalAudio) => {
-      // this.#audio = positionalAudio;
+      this.#positionalAudio = positionalAudio;
       positionalAudio.setDistanceModel("linear");
       positionalAudio.setRefDistance(10);
       positionalAudio.setMaxDistance(meshRadius + 2);
@@ -295,6 +296,14 @@ export class LightedTile extends ActorComponent<GameContext> {
 
   destroy() {
     this.#pulseGroup?.removeAll();
+
+    if (this.#positionalAudio) {
+      if (this.#positionalAudio.isPlaying) {
+        this.#positionalAudio.stop();
+      }
+      this.#positionalAudio.disconnect();
+    }
+
     this.group.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.geometry.dispose();

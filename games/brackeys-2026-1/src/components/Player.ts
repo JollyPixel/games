@@ -7,10 +7,10 @@ import {
 import * as THREE from "three";
 
 // Import Internal Dependencies
-import { Geometry } from "./voxel/index.ts";
 import type { Terrain, Camera, Overlay } from "./index.ts";
-import * as utils from "../utils/index.ts";
 import type { GameContext } from "../globals.ts";
+import * as utils from "../utils/index.ts";
+import { Geometry } from "./voxel/index.ts";
 
 export interface PlayerOptions {
   /**
@@ -27,22 +27,16 @@ export interface PlayerOptions {
 }
 
 export class Player extends ActorComponent<GameContext> {
-  // TODO: should not be here
-  #paused = false;
-
-  // Actors and components
   #terrain: Terrain;
   #camera: Camera;
   #overlay: Overlay;
 
   #mesh: Geometry.Cube;
 
-  // Player animation state
   #moving = false;
   #rollProgress = 0;
   #rollDuration = 0.15;
-  #rollLastMoveTime = 0;
-  #rollMoveCoolDown = 10;
+  #rollCooldown: utils.Timer;
   #rollAxis = new THREE.Vector3();
   #rollPivot = new THREE.Vector3();
   #rollStartQuat = new THREE.Quaternion();
@@ -66,22 +60,29 @@ export class Player extends ActorComponent<GameContext> {
     } = options;
 
     this.#rollDuration = rollDuration;
-    this.#rollMoveCoolDown = rollMoveCoolDown;
+    this.#rollCooldown = new utils.Timer(rollMoveCoolDown);
+  }
+
+  warpToPosition(
+    position: THREE.Vector3
+  ) {
+    position.y += 0.5;
+
+    this.#moving = false;
+    this.#rollProgress = 0;
+    this.actor.transform.setLocalPosition(position);
+    this.#mesh.position.set(0, 0, 0);
+    this.#mesh.quaternion.identity();
   }
 
   warpToSpawn() {
     const { events } = this.actor.gameInstance.context;
 
-    events.PlayerRespawned.emit();
-    const spawn = this.#terrain.getCustomTileFirstPosition("Spawn")?.clone();
-    if (!spawn) {
-      throw new Error("Spawn point not found");
+    const spawn = this.#terrain.getCustomTileFirstPosition("Spawn");
+    if (spawn) {
+      events.PlayerRespawned.emit();
+      this.warpToPosition(spawn.clone());
     }
-    spawn.y += 0.5;
-
-    this.actor.transform.setLocalPosition(spawn);
-    this.#mesh.position.set(0, 0, 0);
-    this.#mesh.quaternion.identity();
   }
 
   awake(): void {
@@ -101,8 +102,6 @@ export class Player extends ActorComponent<GameContext> {
     this.actor.threeObject.add(this.#mesh);
 
     const light = new THREE.PointLight(0x00ff44, 2, 12, 1.5);
-    // light.castShadow = true;
-    // light.shadow.mapSize.set(512, 512);
     light.position.set(0, 1.5, 0);
     this.actor.threeObject.add(light);
   }
@@ -131,20 +130,19 @@ export class Player extends ActorComponent<GameContext> {
   update(
     deltaTime: number
   ) {
-    if (this.#paused) {
+    const { context, input } = this.actor.gameInstance;
+
+    if (context.paused) {
       return;
     }
 
-    const { input } = this.actor.gameInstance;
-    const now = performance.now();
-
     // JUST FOR TESTING: respawn on R key
     if (input.wasKeyJustPressed("KeyR")) {
-      this.#paused = true;
+      context.paused = true;
       this.#overlay.fadeIn(() => {
         this.warpToSpawn();
         this.#overlay.fadeOut();
-        this.#paused = false;
+        context.paused = false;
       });
     }
 
@@ -156,7 +154,7 @@ export class Player extends ActorComponent<GameContext> {
         this.#applyRoll(1);
         this.#mesh.position.set(0, 0, 0);
         this.#moving = false;
-        this.#rollLastMoveTime = now;
+        this.#rollCooldown.start();
       }
       else {
         this.#applyRoll(this.#rollProgress);
@@ -165,12 +163,14 @@ export class Player extends ActorComponent<GameContext> {
       return;
     }
 
-    if (now - this.#rollLastMoveTime < this.#rollMoveCoolDown) {
+    if (!this.#rollCooldown.ready) {
       return;
     }
 
     let forward = 0;
     let right = 0;
+
+    // TODO: implement Arrow keys and gamepad support
     if (input.wasKeyJustPressed("KeyW")) {
       forward += 1;
     }

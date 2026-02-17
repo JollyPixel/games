@@ -12,6 +12,7 @@ export const EventsMap = {
 } as const;
 
 export interface GameContext {
+  paused: boolean;
   layers: {
     glitch: number;
   };

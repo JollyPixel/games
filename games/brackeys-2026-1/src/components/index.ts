@@ -4,3 +4,5 @@ export * from "./Player.ts";
 export * from "./Grid.ts";
 export * from "./Overlay.ts";
 export * from "./LightedTile.ts";
+export * from "./Detection.ts";
+export * from "./Teleport.ts";

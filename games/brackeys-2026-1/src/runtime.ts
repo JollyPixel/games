@@ -27,6 +27,7 @@ const runtime = new Runtime(canvasHTMLElement, {
   includePerformanceStats: debug,
   audio: globalAudio,
   context: {
+    paused: false,
     layers: {
       glitch: 1
     },
