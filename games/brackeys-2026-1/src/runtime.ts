@@ -35,12 +35,12 @@ const runtime = new Runtime(canvasHTMLElement, {
   } satisfies GameContext
 });
 
+const audioManager = GlobalAudioManager.fromGameInstance(runtime.gameInstance);
+runtime.gameInstance.context.audioManager = audioManager;
+
 createDefaultScene(runtime.gameInstance, {
   debug
 });
-
-const audioManager = GlobalAudioManager.fromGameInstance(runtime.gameInstance);
-runtime.gameInstance.context.audioManager = audioManager;
 
 const bg = new AudioBackground({
   audioManager,
@@ -58,7 +58,7 @@ const bg = new AudioBackground({
 });
 
 globalAudio.observe(bg);
-globalAudio.volume = 0.25;
+globalAudio.volume = 0.15;
 
 canvasHTMLElement.addEventListener("click", async() => {
   await bg.play("main.ambiant");

@@ -68,6 +68,9 @@ export class Camera extends ActorComponent<GameContext> {
       0.1,
       100
     );
+    this.camera.add(
+      this.actor.gameInstance.audio.threeAudioListener
+    );
     this.actor.gameInstance.renderer.addRenderComponent(this.camera);
     this.actor.threeObject.add(this.camera);
   }

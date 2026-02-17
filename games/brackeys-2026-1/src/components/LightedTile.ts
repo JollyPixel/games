@@ -6,6 +6,9 @@ import {
 import * as THREE from "three";
 import { Tween, Group as TweenGroup, Easing } from "@tweenjs/tween.js";
 
+// Import Internal Dependencies
+import { type GameContext } from "../globals.ts";
+
 export interface TileEdgesOptions {
   /**
    * Highlight color
@@ -80,9 +83,24 @@ export interface TileHighlightOptions extends TileEdgesOptions {
    * Disabled state appearance.
    */
   disabled?: TileDisabledOptions;
+  /**
+   * Options for positional audio. Disabled when not provided.
+   */
+  positionalAudio?: {
+    /**
+     * Show debug mesh
+     * @default false
+     */
+    debugMesh?: boolean;
+    /**
+     * Debug mesh radius
+     * @default 1
+     */
+    meshRadius?: number;
+  };
 }
 
-export class LightedTile extends ActorComponent {
+export class LightedTile extends ActorComponent<GameContext> {
   group = new THREE.Group();
 
   #materials: THREE.MeshStandardMaterial[] = [];
@@ -95,7 +113,7 @@ export class LightedTile extends ActorComponent {
   #disabledColor: THREE.Color;
 
   constructor(
-    actor: Actor,
+    actor: Actor<GameContext>,
     options: TileHighlightOptions = {}
   ) {
     super({
@@ -108,6 +126,7 @@ export class LightedTile extends ActorComponent {
       light = {},
       pulse,
       disabled = {},
+      positionalAudio,
       ...edgeOptions
     } = options;
 
@@ -134,8 +153,51 @@ export class LightedTile extends ActorComponent {
     if (pulse) {
       this.#initPulse(pulse);
     }
+    if (positionalAudio) {
+      this.#initPositionalAudio(positionalAudio);
+    }
 
     this.actor.threeObject.add(this.group);
+  }
+
+  #initPositionalAudio(
+    options: TileHighlightOptions["positionalAudio"] = {}
+  ) {
+    const { debugMesh = false, meshRadius = 1 } = options;
+    if (debugMesh) {
+      const sphere = new THREE.SphereGeometry(meshRadius, 32, 16);
+      const material = new THREE.MeshPhongMaterial({
+        color: 0xff2200,
+        wireframe: true,
+        opacity: 0.7,
+        transparent: true,
+        depthTest: false
+      });
+      const mesh = new THREE.Mesh(sphere, material);
+      mesh.position.y = meshRadius;
+      mesh.renderOrder = 9999;
+
+      this.group.add(mesh);
+    }
+
+    this.actor.gameInstance.context.audioManager.loadPositionalAudio(
+      "sounds/engine-looping_1.wav",
+      {
+        loop: true
+      }
+    ).then((positionalAudio) => {
+      // this.#audio = positionalAudio;
+      positionalAudio.setDistanceModel("linear");
+      positionalAudio.setRefDistance(10);
+      positionalAudio.setMaxDistance(meshRadius + 2);
+      positionalAudio.setRolloffFactor(1);
+      const gainNode = positionalAudio.gain;
+      gainNode.gain.setValueAtTime(0, positionalAudio.context.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.1, positionalAudio.context.currentTime + 1.5);
+
+      positionalAudio.play();
+      this.group.add(positionalAudio);
+    });
   }
 
   #initPulse(

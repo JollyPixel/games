@@ -1,7 +1,6 @@
 // Import Third-party Dependencies
 import {
-  Systems,
-  Actor
+  Systems
 } from "@jolly-pixel/engine";
 import * as THREE from "three";
 
@@ -89,24 +88,25 @@ export function createDefaultScene(
   grid.customTile.add("Spawn", (actor, position) => {
     const tile = actor.registerComponentAndGet(components.LightedTile, {
       color: 0x0066ff,
-      pulse: { min: 0.25, max: 1, duration: 1500 }
+      pulse: { min: 0.25, max: 1, duration: 1500 },
+      positionalAudio: {}
     });
     tile.setPosition(position);
 
     return tile.group;
   });
 
-  const game = new Actor(world, { name: "Game" })
+  const game = world.createActor("Game")
     .registerComponent(components.Grid, { ratio: 4, size: 32 });
 
-  new Actor(world, { name: "Terrain", parent: game })
+  world.createActor("Terrain", { parent: game })
     .registerComponent(components.Terrain, { tileset, grid });
 
-  new Actor(world, { name: "Player", parent: game })
+  world.createActor("Player", { parent: game })
     .registerComponent(components.Player);
 
   let overlayPass: components.Overlay["pass"];
-  new Actor(world, { name: "Camera", parent: game })
+  world.createActor("Camera", { parent: game })
     .registerComponent(components.Overlay, void 0, (overlay) => {
       overlayPass = overlay.pass;
     })
