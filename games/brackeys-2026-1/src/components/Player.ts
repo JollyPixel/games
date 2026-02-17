@@ -7,10 +7,8 @@ import {
 import * as THREE from "three";
 
 // Import Internal Dependencies
-import { Cube } from "./map/Cube.ts";
-import type { VoxelMap } from "./Map.ts";
-import type { Camera } from "./Camera.ts";
-import type { Overlay } from "./Overlay.ts";
+import { Geometry } from "./voxel/index.ts";
+import type { Terrain, Camera, Overlay } from "./index.ts";
 import { EventsMap } from "../events.ts";
 import { GLITCH_LAYER } from "../constants.ts";
 import * as utils from "../utils/index.ts";
@@ -34,11 +32,11 @@ export class Player extends ActorComponent {
   #paused = false;
 
   // Actors and components
-  #map: VoxelMap;
+  #terrain: Terrain;
   #camera: Camera;
   #overlay: Overlay;
 
-  #mesh: Cube;
+  #mesh: Geometry.Cube;
 
   // Player animation state
   #moving = false;
@@ -74,7 +72,7 @@ export class Player extends ActorComponent {
 
   warpToSpawn() {
     EventsMap.PlayerRespawned.emit();
-    const spawn = this.#map.getCustomTileFirstPosition("Spawn")?.clone();
+    const spawn = this.#terrain.getCustomTileFirstPosition("Spawn")?.clone();
     if (!spawn) {
       throw new Error("Spawn point not found");
     }
@@ -86,7 +84,7 @@ export class Player extends ActorComponent {
   }
 
   awake(): void {
-    this.#mesh = new Cube({
+    this.#mesh = new Geometry.Cube({
       size: 1,
       color: new THREE.Color("green")
     });
@@ -109,9 +107,9 @@ export class Player extends ActorComponent {
   start() {
     const { tree } = this.actor.gameInstance.scene;
 
-    this.#map = utils.getComponentByName<VoxelMap>(
-      tree.getActor("Map")!,
-      "MapBehavior"
+    this.#terrain = utils.getComponentByName<Terrain>(
+      tree.getActor("Terrain")!,
+      "TerrainBehavior"
     );
 
     const cameraActor = tree.getActor("Camera")!;
@@ -207,7 +205,7 @@ export class Player extends ActorComponent {
       const nextX = current.x + dx;
       const nextZ = current.z + dz;
 
-      if (this.#map.isWalkable(nextX, nextZ)) {
+      if (this.#terrain.isWalkable(nextX, nextZ)) {
         this.#startRoll(dx, dz);
         this.actor.threeObject.position.set(nextX, current.y, nextZ);
       }

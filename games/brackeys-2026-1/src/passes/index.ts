@@ -46,9 +46,9 @@ export function createWorldRenderPass(
     const effects: Pass[] = [
       new UnrealBloomPass(
         world.input.getScreenSize(),
-        0.25,
-        0.1,
-        0.25
+        0.38,
+        0.5,
+        0.35
       ),
       new SelectiveGlitchPass(scene, camera),
       new OutputPass()

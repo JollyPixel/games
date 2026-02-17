@@ -47,7 +47,7 @@ world.audio.volume = 0.25;
 
 canvasHTMLElement.addEventListener("click", async() => {
   await bg.play("main.ambiant");
-});
+}, { once: true });
 
 loadPlayer(player)
   .catch(console.error);
