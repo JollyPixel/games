@@ -9,9 +9,8 @@ import * as THREE from "three";
 // Import Internal Dependencies
 import { Geometry } from "./voxel/index.ts";
 import type { Terrain, Camera, Overlay } from "./index.ts";
-import { EventsMap } from "../events.ts";
-import { GLITCH_LAYER } from "../constants.ts";
 import * as utils from "../utils/index.ts";
+import type { GameContext } from "../globals.ts";
 
 export interface PlayerOptions {
   /**
@@ -27,7 +26,7 @@ export interface PlayerOptions {
   rollMoveCoolDown?: number;
 }
 
-export class Player extends ActorComponent {
+export class Player extends ActorComponent<GameContext> {
   // TODO: should not be here
   #paused = false;
 
@@ -53,7 +52,7 @@ export class Player extends ActorComponent {
   }
 
   constructor(
-    actor: Actor,
+    actor: Actor<GameContext>,
     options: PlayerOptions = {}
   ) {
     super({
@@ -71,7 +70,9 @@ export class Player extends ActorComponent {
   }
 
   warpToSpawn() {
-    EventsMap.PlayerRespawned.emit();
+    const { events } = this.actor.gameInstance.context;
+
+    events.PlayerRespawned.emit();
     const spawn = this.#terrain.getCustomTileFirstPosition("Spawn")?.clone();
     if (!spawn) {
       throw new Error("Spawn point not found");
@@ -84,6 +85,8 @@ export class Player extends ActorComponent {
   }
 
   awake(): void {
+    const { layers } = this.actor.gameInstance.context;
+
     this.#mesh = new Geometry.Cube({
       size: 1,
       color: new THREE.Color("green")
@@ -94,7 +97,7 @@ export class Player extends ActorComponent {
       emissiveIntensity: 0.4
     });
     this.#mesh.castShadow = true;
-    this.#mesh.layers.enable(GLITCH_LAYER);
+    this.#mesh.layers.enable(layers.glitch);
     this.actor.threeObject.add(this.#mesh);
 
     const light = new THREE.PointLight(0x00ff44, 2, 12, 1.5);

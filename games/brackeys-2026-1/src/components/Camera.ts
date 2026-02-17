@@ -7,6 +7,7 @@ import * as THREE from "three";
 
 // Import Internal Dependencies
 import type { Player } from "./Player.ts";
+import { type GameContext } from "../globals.ts";
 import * as utils from "../utils/index.ts";
 
 export interface CameraOptions {
@@ -32,7 +33,7 @@ export interface CameraOptions {
   rotationSpeed?: number;
 }
 
-export class Camera extends ActorComponent {
+export class Camera extends ActorComponent<GameContext> {
   camera: THREE.PerspectiveCamera;
 
   #player: Player | null = null;
@@ -47,7 +48,7 @@ export class Camera extends ActorComponent {
   }
 
   constructor(
-    actor: Actor,
+    actor: Actor<GameContext>,
     options: CameraOptions = {}
   ) {
     super({

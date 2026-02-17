@@ -9,6 +9,7 @@ import * as THREE from "three";
 import { createWorldRenderPass } from "../passes/index.ts";
 import * as components from "../components/index.ts";
 import * as Voxel from "../components/voxel/index.ts";
+import { type GameContext } from "../globals.ts";
 
 // CONSTANTS
 const kTilesType = {
@@ -26,7 +27,7 @@ export interface SceneOptions {
 }
 
 export function createDefaultScene(
-  world: Systems.GameInstance,
+  world: Systems.GameInstance<THREE.WebGLRenderer, GameContext>,
   options: SceneOptions = {}
 ) {
   const { debug = false } = options;

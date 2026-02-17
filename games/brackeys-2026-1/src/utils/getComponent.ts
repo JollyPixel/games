@@ -9,8 +9,8 @@ import {
  * const playerActor = this.actor.gameInstance.scene.tree.getActor("Player")!;
  * const component = utils.getComponentByName(playerActor, "PlayerBehavior");
  */
-export function getComponentByName<T extends ActorComponent>(
-  actor: Actor,
+export function getComponentByName<T extends ActorComponent<any>>(
+  actor: Actor<any>,
   componentName: string
 ): T {
   const component = actor.components.find(

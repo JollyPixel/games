@@ -24,7 +24,7 @@ export interface WorldRenderPassOptions {
 }
 
 export function createWorldRenderPass(
-  world: Systems.GameInstance,
+  world: Systems.GameInstance<THREE.WebGLRenderer, any>,
   options: WorldRenderPassOptions
 ) {
   const {

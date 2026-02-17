@@ -1,5 +1,6 @@
 // Import Third-party Dependencies
 import {
+  GlobalAudioManager,
   SignalEvent
 } from "@jolly-pixel/engine";
 
@@ -9,3 +10,11 @@ export const EventsMap = {
     this.PlayerRespawned.clear();
   }
 } as const;
+
+export interface GameContext {
+  layers: {
+    glitch: number;
+  };
+  events: typeof EventsMap;
+  audioManager: GlobalAudioManager;
+}
