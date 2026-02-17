@@ -24,7 +24,7 @@ export interface WorldRenderPassOptions {
 }
 
 export function createWorldRenderPass(
-  world: Systems.GameInstance<THREE.WebGLRenderer, any>,
+  world: Systems.World<THREE.WebGLRenderer, any>,
   options: WorldRenderPassOptions
 ) {
   const {
@@ -34,7 +34,7 @@ export function createWorldRenderPass(
   world.renderer.setRenderMode(renderMode);
 
   return (camera: THREE.Camera, overlayPass?: OverlayPass) => {
-    const scene = world.scene.getSource();
+    const scene = world.sceneManager.getSource();
     if (debug) {
       createViewHelper(camera, world);
     }

@@ -32,7 +32,7 @@ export class Teleport extends Detection {
   start() {
     super.start();
 
-    const { tree } = this.actor.gameInstance.scene;
+    const { tree } = this.actor.world.sceneManager;
 
     const cameraActor = tree.getActor("Camera")!;
     this.#overlay = utils.getComponentByName<Overlay>(
@@ -69,13 +69,12 @@ export class Teleport extends Detection {
     }
     Teleport.#cooldown.start();
 
-    const { context } = this.actor.gameInstance;
     const dest = this.#resolvedDestination.clone();
     this.#overlay.fadeIn(() => {
-      context.paused = true;
+      this.context.paused = true;
       player.warpToPosition(dest);
       this.#overlay.fadeOut();
-      context.paused = false;
+      this.context.paused = false;
     });
   }
 }

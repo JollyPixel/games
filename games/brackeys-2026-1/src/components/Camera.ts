@@ -61,7 +61,7 @@ export class Camera extends ActorComponent<GameContext> {
     this.#smooth = options.smooth ?? 0.05;
     this.#rotationSpeed = options.rotationSpeed ?? 0.003;
 
-    const screenSize = this.actor.gameInstance.input.getScreenSize();
+    const screenSize = this.actor.world.input.getScreenSize();
     this.camera = new THREE.PerspectiveCamera(
       75,
       screenSize.width / screenSize.height,
@@ -69,14 +69,14 @@ export class Camera extends ActorComponent<GameContext> {
       100
     );
     this.camera.add(
-      this.actor.gameInstance.audio.threeAudioListener
+      this.actor.world.audio.threeAudioListener
     );
-    this.actor.gameInstance.renderer.addRenderComponent(this.camera);
-    this.actor.threeObject.add(this.camera);
+    this.actor.world.renderer.addRenderComponent(this.camera);
+    this.actor.object3D.add(this.camera);
   }
 
   start() {
-    const playerActor = this.actor.gameInstance.scene.tree.getActor("Player");
+    const playerActor = this.actor.world.sceneManager.tree.getActor("Player");
     if (playerActor) {
       this.#player = utils.getComponentByName<Player>(playerActor, "PlayerBehavior");
     }
@@ -89,7 +89,7 @@ export class Camera extends ActorComponent<GameContext> {
       return;
     }
 
-    const { input } = this.actor.gameInstance;
+    const { input } = this.actor.world;
 
     if (input.isMouseButtonDown("right")) {
       const delta = input.getMouseDelta();
@@ -116,7 +116,7 @@ export class Camera extends ActorComponent<GameContext> {
   }
 
   destroy() {
-    this.actor.gameInstance.renderer.removeRenderComponent(this.camera);
+    this.actor.world.renderer.removeRenderComponent(this.camera);
     super.destroy();
   }
 }

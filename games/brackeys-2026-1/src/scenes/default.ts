@@ -26,7 +26,7 @@ export interface SceneOptions {
 }
 
 export function createDefaultScene(
-  world: Systems.GameInstance<THREE.WebGLRenderer, GameContext>,
+  world: Systems.World<THREE.WebGLRenderer, GameContext>,
   options: SceneOptions = {}
 ) {
   const { debug = false } = options;
@@ -36,7 +36,7 @@ export function createDefaultScene(
   webglRenderer.shadowMap.enabled = true;
   webglRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  const scene = world.scene.getSource();
+  const scene = world.sceneManager.getSource();
   scene.background = new THREE.Color(0x000000);
   scene.add(new THREE.AmbientLight("white", 0.3));
 
@@ -86,7 +86,7 @@ export function createDefaultScene(
     new Voxel.TileType(kTilesType)
   );
   grid.customTile.add("Spawn", (actor, position) => {
-    const tile = actor.registerComponentAndGet(components.LightedTile, {
+    const tile = actor.addComponentAndGet(components.LightedTile, {
       color: 0x0066ff,
       pulse: { min: 0.25, max: 1, duration: 1500 },
       positionalAudio: {}
@@ -96,12 +96,12 @@ export function createDefaultScene(
     return tile.group;
   });
   grid.customTile.add("TP_A", (actor, position) => {
-    actor.registerComponent(components.Teleport, {
+    actor.addComponent(components.Teleport, {
       destination: "TP_B",
       position
     });
 
-    const tile = actor.registerComponentAndGet(components.LightedTile, {
+    const tile = actor.addComponentAndGet(components.LightedTile, {
       color: new THREE.Color("tomato")
     });
     tile.setPosition(position);
@@ -109,12 +109,12 @@ export function createDefaultScene(
     return tile.group;
   });
   grid.customTile.add("TP_B", (actor, position) => {
-    actor.registerComponent(components.Teleport, {
+    actor.addComponent(components.Teleport, {
       destination: "TP_A",
       position
     });
 
-    const tile = actor.registerComponentAndGet(components.LightedTile, {
+    const tile = actor.addComponentAndGet(components.LightedTile, {
       color: new THREE.Color("green")
     });
     tile.setPosition(position);
@@ -123,20 +123,20 @@ export function createDefaultScene(
   });
 
   const game = world.createActor("Game")
-    .registerComponent(components.Grid, { ratio: 4, size: 32 });
+    .addComponent(components.Grid, { ratio: 4, size: 32 });
 
   world.createActor("Terrain", { parent: game })
-    .registerComponent(components.Terrain, { tileset, grid });
+    .addComponent(components.Terrain, { tileset, grid });
 
   world.createActor("Player", { parent: game })
-    .registerComponent(components.Player);
+    .addComponent(components.Player);
 
   let overlayPass: components.Overlay["pass"];
   world.createActor("Camera", { parent: game })
-    .registerComponent(components.Overlay, void 0, (overlay) => {
+    .addComponent(components.Overlay, void 0, (overlay) => {
       overlayPass = overlay.pass;
     })
-    .registerComponent(components.Camera, void 0, (component) => {
+    .addComponent(components.Camera, void 0, (component) => {
       initializeRenderPass(component.camera, overlayPass);
     });
 }

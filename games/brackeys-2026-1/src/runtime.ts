@@ -36,10 +36,10 @@ const runtime = new Runtime(canvasHTMLElement, {
   } satisfies GameContext
 });
 
-const audioManager = GlobalAudioManager.fromGameInstance(runtime.gameInstance);
-runtime.gameInstance.context.audioManager = audioManager;
+const audioManager = GlobalAudioManager.fromWorld(runtime.world);
+runtime.world.context.audioManager = audioManager;
 
-createDefaultScene(runtime.gameInstance, {
+createDefaultScene(runtime.world, {
   debug
 });
 

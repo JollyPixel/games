@@ -76,7 +76,7 @@ export class Player extends ActorComponent<GameContext> {
   }
 
   warpToSpawn() {
-    const { events } = this.actor.gameInstance.context;
+    const { events } = this.context;
 
     const spawn = this.#terrain.getCustomTileFirstPosition("Spawn");
     if (spawn) {
@@ -86,7 +86,7 @@ export class Player extends ActorComponent<GameContext> {
   }
 
   awake(): void {
-    const { layers } = this.actor.gameInstance.context;
+    const { layers } = this.context;
 
     this.#mesh = new Geometry.Cube({
       size: 1,
@@ -99,15 +99,15 @@ export class Player extends ActorComponent<GameContext> {
     });
     this.#mesh.castShadow = true;
     this.#mesh.layers.enable(layers.glitch);
-    this.actor.threeObject.add(this.#mesh);
 
     const light = new THREE.PointLight(0x00ff44, 2, 12, 1.5);
     light.position.set(0, 1.5, 0);
-    this.actor.threeObject.add(light);
+
+    this.actor.addChildren(this.#mesh, light);
   }
 
   start() {
-    const { tree } = this.actor.gameInstance.scene;
+    const { tree } = this.actor.world.sceneManager;
 
     this.#terrain = utils.getComponentByName<Terrain>(
       tree.getActor("Terrain")!,
@@ -130,7 +130,7 @@ export class Player extends ActorComponent<GameContext> {
   update(
     deltaTime: number
   ) {
-    const { context, input } = this.actor.gameInstance;
+    const { context, input } = this.actor.world;
 
     if (context.paused) {
       return;
@@ -204,21 +204,15 @@ export class Player extends ActorComponent<GameContext> {
         dz = Math.sign(rawZ);
       }
 
-      const current = this.actor.threeObject.position;
+      const current = this.actor.object3D.position;
       const nextX = current.x + dx;
       const nextZ = current.z + dz;
 
       if (this.#terrain.isWalkable(nextX, nextZ)) {
         this.#startRoll(dx, dz);
-        this.actor.threeObject.position.set(nextX, current.y, nextZ);
+        this.actor.object3D.position.set(nextX, current.y, nextZ);
       }
     }
-  }
-
-  destroy() {
-    this.#mesh.geometry.dispose();
-    (this.#mesh.material as THREE.Material).dispose();
-    super.destroy();
   }
 
   #startRoll(

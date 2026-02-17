@@ -158,7 +158,7 @@ export class LightedTile extends ActorComponent<GameContext> {
       this.#initPositionalAudio(positionalAudio);
     }
 
-    this.actor.threeObject.add(this.group);
+    this.actor.addChildren(this.group);
   }
 
   #initPositionalAudio(
@@ -181,7 +181,7 @@ export class LightedTile extends ActorComponent<GameContext> {
       this.group.add(mesh);
     }
 
-    this.actor.gameInstance.context.audioManager.loadPositionalAudio(
+    this.actor.world.context.audioManager.loadPositionalAudio(
       "sounds/engine-looping_1.wav",
       {
         loop: true
@@ -304,12 +304,6 @@ export class LightedTile extends ActorComponent<GameContext> {
       this.#positionalAudio.disconnect();
     }
 
-    this.group.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.geometry.dispose();
-        (child.material as THREE.Material).dispose();
-      }
-    });
     super.destroy();
   }
 }

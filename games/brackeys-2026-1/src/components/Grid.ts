@@ -105,7 +105,7 @@ export class Grid extends ActorComponent {
     this.#mesh.position.y = -1.5;
     this.#mesh.computeLineDistances();
 
-    this.actor.threeObject.add(this.#mesh);
+    this.actor.addChildren(this.#mesh);
   }
 
   clearMesh() {
@@ -113,14 +113,7 @@ export class Grid extends ActorComponent {
       return;
     }
 
-    this.#mesh.geometry.dispose();
-    if (Array.isArray(this.#mesh.material)) {
-      this.#mesh.material.forEach((material) => material.dispose());
-    }
-    else {
-      this.#mesh.material.dispose();
-    }
-    this.actor.threeObject.remove(this.#mesh);
+    this.actor.removeChildren(this.#mesh);
     this.#mesh = null;
   }
 

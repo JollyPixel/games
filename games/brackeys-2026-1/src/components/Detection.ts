@@ -64,7 +64,7 @@ export class Detection extends ActorComponent<GameContext> {
   }
 
   start() {
-    const playerActor = this.actor.gameInstance.scene.tree.getActor("Player");
+    const playerActor = this.actor.world.sceneManager.tree.getActor("Player");
     if (playerActor) {
       this.#player = utils.getComponentByName<Player>(playerActor, "PlayerBehavior");
     }
@@ -75,8 +75,8 @@ export class Detection extends ActorComponent<GameContext> {
       return;
     }
 
-    const center = this.#position ?? this.actor.threeObject.position;
-    const playerPos = this.#player.actor.threeObject.position;
+    const center = this.#position ?? this.actor.object3D.position;
+    const playerPos = this.#player.actor.object3D.position;
     const dx = center.x - playerPos.x;
     const dz = center.z - playerPos.z;
     const distance = Math.sqrt((dx * dx) + (dz * dz));

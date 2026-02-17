@@ -3,7 +3,6 @@ import {
   ActorComponent,
   type Actor
 } from "@jolly-pixel/engine";
-import * as THREE from "three";
 
 // Import Internal Dependencies
 import * as Geometry from "./geometry/index.ts";
@@ -60,16 +59,6 @@ export class Terrain extends ActorComponent {
     this.#initTerrain();
   }
 
-  destroy() {
-    this.actor.threeObject.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.geometry.dispose();
-        (child.material as THREE.Material).dispose();
-      }
-    });
-    super.destroy();
-  }
-
   #initTerrain() {
     for (const { tile, tileName, x, z } of this.#grid) {
       const customObject = this.#grid.initTile({
@@ -80,14 +69,14 @@ export class Terrain extends ActorComponent {
         y: Terrain.Y
       });
       if (customObject) {
-        this.actor.threeObject.add(customObject);
+        this.actor.addChildren(customObject);
       }
 
       const floor = new Geometry.Cube({
         texture: this.#tileset.getTile("Floor", { cache: false })
       });
       floor.position.set(x, Terrain.Y - 0.5, z);
-      this.actor.threeObject.add(floor);
+      this.actor.addChildren(floor);
 
       if (tile === this.#grid.tileType.id("Wall")) {
         const wall = new Geometry.Cube({
@@ -95,7 +84,7 @@ export class Terrain extends ActorComponent {
         });
         wall.castShadow = true;
         wall.position.set(x, 0.5, z);
-        this.actor.threeObject.add(wall);
+        this.actor.addChildren(wall);
       }
       else if (tile === this.#grid.tileType.id("DemiWall")) {
         const wall = new Geometry.DemiCube({
@@ -103,7 +92,7 @@ export class Terrain extends ActorComponent {
         });
         wall.castShadow = true;
         wall.position.set(x, 0.25, z);
-        this.actor.threeObject.add(wall);
+        this.actor.addChildren(wall);
       }
     }
   }
