@@ -1,6 +1,7 @@
 // Import Third-party Dependencies
 import {
-  Systems
+  Systems,
+  ModelRenderer
 } from "@jolly-pixel/engine";
 import * as THREE from "three";
 
@@ -51,7 +52,7 @@ export class DefaultScene extends Systems.Scene<GameContext> {
 
     const { debug = false } = options;
     this.initializeRenderPass = createWorldRenderPass(world, {
-      renderMode: "direct",
+      renderMode: "composer",
       overlayPass: this.overlayPass,
       debug
     });
@@ -95,11 +96,6 @@ export class DefaultScene extends Systems.Scene<GameContext> {
         }
       }
     );
-  }
-
-  awake() {
-    console.log("DefaultScene awake");
-    const world = this.world;
 
     this.grid.customTile.add("Spawn", (actor, position) => {
       const tile = actor.addComponentAndGet(components.LightedTile, {
@@ -145,7 +141,10 @@ export class DefaultScene extends Systems.Scene<GameContext> {
       .addComponent(components.Terrain, { tileset: this.tileset, grid: this.grid });
 
     world.createActor("Player", { parent: game })
-      .addComponent(components.Player);
+      .addComponent(components.Player)
+      .addComponent(ModelRenderer, {
+        path: "models/Avatar001_v1.obj"
+      });
 
     world.createActor("Camera", { parent: game })
       .addComponent(components.Overlay, { pass: this.overlayPass })

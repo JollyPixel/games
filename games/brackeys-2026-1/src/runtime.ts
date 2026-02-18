@@ -3,6 +3,7 @@ import { Runtime, loadRuntime } from "@jolly-pixel/runtime";
 import {
   GlobalAudio,
   GlobalAudioManager,
+  AudioLibrary,
   AudioBackground
 } from "@jolly-pixel/engine";
 
@@ -31,13 +32,17 @@ const runtime = new Runtime<GameContext>(canvasHTMLElement, {
       glitch: 1
     },
     events: EventsMap,
-    audioManager: null as unknown as GameContext["audioManager"]
+    audioManager: null as unknown as GameContext["audioManager"],
+    audioSfx: null as unknown as GameContext["audioSfx"]
   }
 });
 
 const audioManager = GlobalAudioManager.fromWorld(runtime.world);
 runtime.world.context.audioManager = audioManager;
-const defaultScene = new DefaultScene(runtime.world, { debug });
+
+const audioSfx = new AudioLibrary();
+audioSfx.register("engine-loop", "sounds/engine-looping_1.wav");
+runtime.world.context.audioSfx = audioSfx;
 
 const bg = new AudioBackground({
   audioManager,
@@ -56,6 +61,8 @@ const bg = new AudioBackground({
 
 audio.observe(bg);
 audio.volume = 0.15;
+
+const defaultScene = new DefaultScene(runtime.world, { debug });
 
 canvasHTMLElement.addEventListener("click", async() => {
   await bg.play("main.ambiant");

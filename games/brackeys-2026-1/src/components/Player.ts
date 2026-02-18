@@ -2,15 +2,15 @@
 // Import Third-party Dependencies
 import {
   ActorComponent,
+  ModelRenderer,
   type Actor
 } from "@jolly-pixel/engine";
 import * as THREE from "three";
 
 // Import Internal Dependencies
-import type { Terrain, Camera, Overlay } from "./index.ts";
+import { Terrain, type Camera, type Overlay } from "./index.ts";
 import type { GameContext } from "../globals.ts";
 import * as utils from "../utils/index.ts";
-import { Geometry } from "./voxel/index.ts";
 
 export interface PlayerOptions {
   /**
@@ -30,8 +30,9 @@ export class Player extends ActorComponent<GameContext> {
   #terrain: Terrain;
   #camera: Camera;
   #overlay: Overlay;
+  #model: ModelRenderer;
 
-  #mesh: Geometry.Cube;
+  #mesh: THREE.Group;
 
   #moving = false;
   #rollProgress = 0;
@@ -86,43 +87,33 @@ export class Player extends ActorComponent<GameContext> {
   }
 
   awake(): void {
-    const { layers } = this.context;
-
-    this.#mesh = new Geometry.Cube({
-      size: 1,
-      color: new THREE.Color("green")
-    });
-    this.#mesh.material = new THREE.MeshLambertMaterial({
-      color: new THREE.Color("green"),
-      emissive: new THREE.Color(0x00ff44),
-      emissiveIntensity: 0.4
-    });
-    this.#mesh.castShadow = true;
-    this.#mesh.layers.enable(layers.glitch);
-
     const light = new THREE.PointLight(0x00ff44, 2, 12, 1.5);
     light.position.set(0, 1.5, 0);
 
-    this.actor.addChildren(this.#mesh, light);
+    this.actor.addChildren(light);
   }
 
   start() {
     const { tree } = this.actor.world.sceneManager;
+    const { layers } = this.context;
 
-    this.#terrain = utils.getComponentByName<Terrain>(
-      tree.getActor("Terrain")!,
-      "TerrainBehavior"
-    );
+    this.#model = this.actor.getComponent(ModelRenderer)!;
+    this.#mesh = this.#model.group;
+    this.#mesh.scale.set(0.5, 0.5, 0.5);
+    this.#mesh.castShadow = true;
+    this.#mesh.layers.enable(layers.glitch);
 
     const cameraActor = tree.getActor("Camera")!;
-    this.#camera = utils.getComponentByName<Camera>(
-      cameraActor,
+
+    this.#terrain = tree
+      .getActor("Terrain")!
+      .getComponent<Terrain>("TerrainBehavior")!;
+    this.#camera = cameraActor.getComponent<Camera>(
       "CameraBehavior"
-    );
-    this.#overlay = utils.getComponentByName<Overlay>(
-      cameraActor,
+    )!;
+    this.#overlay = cameraActor.getComponent<Overlay>(
       "Overlay"
-    );
+    )!;
 
     this.warpToSpawn();
   }

@@ -1,6 +1,7 @@
 // Import Third-party Dependencies
 import {
   GlobalAudioManager,
+  AudioLibrary,
   SignalEvent
 } from "@jolly-pixel/engine";
 
@@ -18,4 +19,5 @@ export interface GameContext {
   };
   events: typeof EventsMap;
   audioManager: GlobalAudioManager;
+  audioSfx: AudioLibrary;
 }

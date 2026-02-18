@@ -111,6 +111,8 @@ export class LightedTile extends ActorComponent<GameContext> {
   #enabled = true;
   #disabledOpacity: number;
   #disabledColor: THREE.Color;
+
+  #positionalAudioOptions: TileHighlightOptions["positionalAudio"] | null = null;
   #positionalAudio: THREE.PositionalAudio | null = null;
 
   constructor(
@@ -155,16 +157,24 @@ export class LightedTile extends ActorComponent<GameContext> {
       this.#initPulse(pulse);
     }
     if (positionalAudio) {
-      this.#initPositionalAudio(positionalAudio);
+      this.#positionalAudioOptions = positionalAudio;
     }
 
     this.actor.addChildren(this.group);
+  }
+
+  start() {
+    if (this.#positionalAudioOptions) {
+      this.#initPositionalAudio(this.#positionalAudioOptions);
+    }
   }
 
   #initPositionalAudio(
     options: TileHighlightOptions["positionalAudio"] = {}
   ) {
     const { debugMesh = false, meshRadius = 1 } = options;
+    const { audioManager, audioSfx } = this.context;
+
     if (debugMesh) {
       const sphere = new THREE.SphereGeometry(meshRadius, 32, 16);
       const material = new THREE.MeshPhongMaterial({
@@ -181,24 +191,20 @@ export class LightedTile extends ActorComponent<GameContext> {
       this.group.add(mesh);
     }
 
-    this.actor.world.context.audioManager.loadPositionalAudio(
-      "sounds/engine-looping_1.wav",
-      {
-        loop: true
-      }
-    ).then((positionalAudio) => {
-      this.#positionalAudio = positionalAudio;
-      positionalAudio.setDistanceModel("linear");
-      positionalAudio.setRefDistance(10);
-      positionalAudio.setMaxDistance(meshRadius + 2);
-      positionalAudio.setRolloffFactor(1);
-      const gainNode = positionalAudio.gain;
-      gainNode.gain.setValueAtTime(0, positionalAudio.context.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.1, positionalAudio.context.currentTime + 1.5);
+    const positionalAudio = audioManager.createPositionalAudio(
+      audioSfx.get("engine-loop")
+    );
+    this.#positionalAudio = positionalAudio;
+    positionalAudio.setDistanceModel("linear");
+    positionalAudio.setRefDistance(10);
+    positionalAudio.setMaxDistance(meshRadius + 2);
+    positionalAudio.setRolloffFactor(1);
+    const gainNode = positionalAudio.gain;
+    gainNode.gain.setValueAtTime(0, positionalAudio.context.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.1, positionalAudio.context.currentTime + 1.5);
 
-      positionalAudio.play();
-      this.group.add(positionalAudio);
-    });
+    positionalAudio.play();
+    this.group.add(positionalAudio);
   }
 
   #initPulse(

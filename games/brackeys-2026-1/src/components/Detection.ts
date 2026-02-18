@@ -64,14 +64,18 @@ export class Detection extends ActorComponent<GameContext> {
   }
 
   start() {
-    const playerActor = this.actor.world.sceneManager.tree.getActor("Player");
+    const { sceneManager } = this.actor.world;
+
+    const playerActor = sceneManager.getActor("Player");
     if (playerActor) {
-      this.#player = utils.getComponentByName<Player>(playerActor, "PlayerBehavior");
+      this.#player = playerActor.getComponent<Player>("PlayerBehavior");
     }
   }
 
   update() {
     if (!this.#player) {
+      this.needUpdate = false;
+
       return;
     }
 

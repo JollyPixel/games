@@ -35,16 +35,13 @@ export class Teleport extends Detection {
     const { tree } = this.actor.world.sceneManager;
 
     const cameraActor = tree.getActor("Camera")!;
-    this.#overlay = utils.getComponentByName<Overlay>(
-      cameraActor,
-      "Overlay"
-    );
+    this.#overlay = cameraActor.getComponent<Overlay>("Overlay")!;
 
     if (typeof this.#destination === "string") {
-      const terrain = utils.getComponentByName<Terrain>(
-        tree.getActor("Terrain")!,
-        "TerrainBehavior"
-      );
+      const terrain = tree
+        .getActor("Terrain")!
+        .getComponent<Terrain>("TerrainBehavior")!;
+
       const pos = terrain.getCustomTileFirstPosition(this.#destination);
       if (!pos) {
         throw new Error(`Teleport: custom tile "${this.#destination}" not found`);

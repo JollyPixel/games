@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@jolly-pixel/engine": "2.2.0",
+    "@jolly-pixel/engine": "2.3.0",
     "@jolly-pixel/runtime": "3.2.0",
     "@tweenjs/tween.js": "25.0.0",
     "three": "0.182.0",
