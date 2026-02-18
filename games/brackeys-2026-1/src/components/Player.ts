@@ -161,17 +161,36 @@ export class Player extends ActorComponent<GameContext> {
     let forward = 0;
     let right = 0;
 
-    // TODO: implement Arrow keys and gamepad support
-    if (input.wasKeyJustPressed("KeyW")) {
+    if (
+      input.wasKeyJustPressed("KeyW") ||
+      input.wasKeyJustPressed("ArrowUp") ||
+      input.wasGamepadButtonJustPressed(0, "DPadUp") ||
+      input.wasGamepadAxisJustPressed(0, "LeftStickY", { autoRepeat: true })
+    ) {
       forward += 1;
     }
-    if (input.wasKeyJustPressed("KeyS")) {
+    if (
+      input.wasKeyJustPressed("KeyS") ||
+      input.wasKeyJustPressed("ArrowDown") ||
+      input.wasGamepadButtonJustPressed(0, "DPadDown") ||
+      input.wasGamepadAxisJustPressed(0, "LeftStickY", { positive: true, autoRepeat: true })
+    ) {
       forward -= 1;
     }
-    if (input.wasKeyJustPressed("KeyA")) {
+    if (
+      input.wasKeyJustPressed("KeyA") ||
+      input.wasKeyJustPressed("ArrowLeft") ||
+      input.wasGamepadButtonJustPressed(0, "DPadLeft") ||
+      input.wasGamepadAxisJustPressed(0, "LeftStickX", { autoRepeat: true })
+    ) {
       right -= 1;
     }
-    if (input.wasKeyJustPressed("KeyD")) {
+    if (
+      input.wasKeyJustPressed("KeyD") ||
+      input.wasKeyJustPressed("ArrowRight") ||
+      input.wasGamepadButtonJustPressed(0, "DPadRight") ||
+      input.wasGamepadAxisJustPressed(0, "LeftStickX", { positive: true, autoRepeat: true })
+    ) {
       right += 1;
     }
 
