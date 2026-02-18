@@ -7,3 +7,5 @@ export * from "./LightedTile.ts";
 export * from "./Detection.ts";
 export * from "./Teleport.ts";
 export * from "./GameScreen.ts";
+export * from "./Glitch.ts";
+export * from "./Door.ts";
