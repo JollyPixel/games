@@ -6,3 +6,4 @@ export * from "./Overlay.ts";
 export * from "./LightedTile.ts";
 export * from "./Detection.ts";
 export * from "./Teleport.ts";
+export * from "./GameScreen.ts";

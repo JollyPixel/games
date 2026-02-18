@@ -27,7 +27,7 @@ const runtime = new Runtime<GameContext>(canvasHTMLElement, {
   includePerformanceStats: debug,
   audio,
   context: {
-    paused: false,
+    paused: true,
     layers: {
       glitch: 1
     },

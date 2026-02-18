@@ -8,7 +8,7 @@ import {
 import * as THREE from "three";
 
 // Import Internal Dependencies
-import { Terrain, type Camera, type Overlay } from "./index.ts";
+import { Terrain, type Camera, type GameScreen } from "./index.ts";
 import type { GameContext } from "../globals.ts";
 import * as utils from "../utils/index.ts";
 
@@ -29,7 +29,6 @@ export interface PlayerOptions {
 export class Player extends ActorComponent<GameContext> {
   #terrain: Terrain;
   #camera: Camera;
-  #overlay: Overlay;
   #model: ModelRenderer;
 
   #mesh: THREE.Group;
@@ -86,6 +85,17 @@ export class Player extends ActorComponent<GameContext> {
     }
   }
 
+  die() {
+    const { world } = this.actor;
+    world.context.paused = true;
+
+    const gameScreen = world.sceneManager
+      .getActor("UIScreen")
+      ?.getComponent<GameScreen>("GameScreen");
+
+    gameScreen?.show(() => this.warpToSpawn());
+  }
+
   awake(): void {
     const light = new THREE.PointLight(0x00ff44, 2, 12, 1.5);
     light.position.set(0, 1.5, 0);
@@ -111,9 +121,6 @@ export class Player extends ActorComponent<GameContext> {
     this.#camera = cameraActor.getComponent<Camera>(
       "CameraBehavior"
     )!;
-    this.#overlay = cameraActor.getComponent<Overlay>(
-      "Overlay"
-    )!;
 
     this.warpToSpawn();
   }
@@ -129,12 +136,7 @@ export class Player extends ActorComponent<GameContext> {
 
     // JUST FOR TESTING: respawn on R key
     if (input.wasKeyJustPressed("KeyR")) {
-      context.paused = true;
-      this.#overlay.fadeIn(() => {
-        this.warpToSpawn();
-        this.#overlay.fadeOut();
-        context.paused = false;
-      });
+      this.die();
     }
 
     if (this.#moving) {

@@ -1,7 +1,8 @@
 // Import Third-party Dependencies
 import {
   Systems,
-  ModelRenderer
+  ModelRenderer,
+  UIRenderer
 } from "@jolly-pixel/engine";
 import * as THREE from "three";
 
@@ -49,6 +50,8 @@ export class DefaultScene extends Systems.Scene<GameContext> {
     options: DefaultSceneOptions = {}
   ) {
     super("DefaultScene");
+
+    this.overlayPass.uniforms.uOpacity.value = 1;
 
     const { debug = false } = options;
     this.initializeRenderPass = createWorldRenderPass(world, {
@@ -133,6 +136,10 @@ export class DefaultScene extends Systems.Scene<GameContext> {
 
       return tile.group;
     });
+
+    world.createActor("UIScreen")
+      .addComponent(UIRenderer)
+      .addComponent(components.GameScreen);
 
     const game = world.createActor("Game")
       .addComponent(components.Grid, { ratio: 4, size: 32 });
