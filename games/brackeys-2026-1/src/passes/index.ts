@@ -10,7 +10,7 @@ import type { Pass } from "three/addons/postprocessing/Pass.js";
 
 // Import Internal Dependencies
 import { SelectiveGlitchPass } from "./SelectiveGlitchPass.ts";
-import type { OverlayPass } from "./OverlayPass.ts";
+import { OverlayPass } from "./OverlayPass.ts";
 
 export interface WorldRenderPassOptions {
   /**
@@ -18,10 +18,16 @@ export interface WorldRenderPassOptions {
    */
   renderMode?: Systems.RenderMode;
   /**
+   * Overlay background
+   */
+  overlayPass?: OverlayPass;
+  /**
    * @default false
    */
   debug?: boolean;
 }
+
+export { OverlayPass };
 
 export function createWorldRenderPass(
   world: Systems.World<THREE.WebGLRenderer, any>,
@@ -29,11 +35,12 @@ export function createWorldRenderPass(
 ) {
   const {
     renderMode = "composer",
+    overlayPass,
     debug = false
   } = options;
   world.renderer.setRenderMode(renderMode);
 
-  return (camera: THREE.Camera, overlayPass?: OverlayPass) => {
+  return (camera: THREE.Camera) => {
     const scene = world.sceneManager.getSource();
     if (debug) {
       createViewHelper(camera, world);

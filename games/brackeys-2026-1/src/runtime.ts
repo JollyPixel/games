@@ -7,7 +7,7 @@ import {
 } from "@jolly-pixel/engine";
 
 // Import Internal Dependencies
-import { createDefaultScene } from "./scenes/default.ts";
+import { DefaultScene } from "./scenes/default.ts";
 import {
   EventsMap,
   type GameContext
@@ -20,12 +20,11 @@ if (!canvasHTMLElement) {
 
 const debug = true;
 
-const globalAudio = new GlobalAudio();
-
-const runtime = new Runtime(canvasHTMLElement, {
+const audio = new GlobalAudio();
+const runtime = new Runtime<GameContext>(canvasHTMLElement, {
   // Displays a stats.js FPS panel — useful during development
   includePerformanceStats: debug,
-  audio: globalAudio,
+  audio,
   context: {
     paused: false,
     layers: {
@@ -33,15 +32,12 @@ const runtime = new Runtime(canvasHTMLElement, {
     },
     events: EventsMap,
     audioManager: null as unknown as GameContext["audioManager"]
-  } satisfies GameContext
+  }
 });
 
 const audioManager = GlobalAudioManager.fromWorld(runtime.world);
 runtime.world.context.audioManager = audioManager;
-
-createDefaultScene(runtime.world, {
-  debug
-});
+const defaultScene = new DefaultScene(runtime.world, { debug });
 
 const bg = new AudioBackground({
   audioManager,
@@ -58,12 +54,15 @@ const bg = new AudioBackground({
   }]
 });
 
-globalAudio.observe(bg);
-globalAudio.volume = 0.15;
+audio.observe(bg);
+audio.volume = 0.15;
 
 canvasHTMLElement.addEventListener("click", async() => {
   await bg.play("main.ambiant");
 }, { once: true });
 
 loadRuntime(runtime)
+  .then(() => {
+    runtime.world.sceneManager.setScene(defaultScene);
+  })
   .catch(console.error);

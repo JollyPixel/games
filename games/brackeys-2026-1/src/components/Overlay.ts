@@ -3,7 +3,6 @@ import {
   ActorComponent,
   type Actor
 } from "@jolly-pixel/engine";
-import * as THREE from "three";
 import { Tween, Easing } from "@tweenjs/tween.js";
 
 // Import Internal Dependencies
@@ -21,10 +20,9 @@ export interface OverlayOptions {
    */
   holdDuration?: number;
   /**
-   * Overlay color
-   * @default 0x000000
+   * Overlay pass
    */
-  color?: THREE.ColorRepresentation;
+  pass?: OverlayPass;
 }
 
 export type OverlayCompleteCallback = () => void;
@@ -44,7 +42,7 @@ export class Overlay extends ActorComponent {
 
     this.#duration = options.duration ?? 750;
     this.#holdDuration = options.holdDuration ?? 750;
-    this.pass = new OverlayPass(options.color ?? 0x000000);
+    this.pass = options.pass ?? new OverlayPass(0x000000);
   }
 
   fadeIn(
