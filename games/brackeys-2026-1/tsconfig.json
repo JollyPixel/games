@@ -6,6 +6,7 @@
     "noImplicitOverride": false,
     "noEmit": true,
     "types": [
+      "node",
       "vite-plugin-glsl/ext"
     ]
   },

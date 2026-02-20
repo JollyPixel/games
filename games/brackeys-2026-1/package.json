@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clean:assets": "node ./scripts/tiledMapJsonCleaner.ts"
   },
   "dependencies": {
-    "@jolly-pixel/engine": "2.4.0",
+    "@jolly-pixel/engine": "2.5.0",
     "@jolly-pixel/runtime": "3.2.0",
+    "@jolly-pixel/voxel.renderer": "1.1.0",
     "@tweenjs/tween.js": "25.0.0",
     "three": "0.182.0",
     "type-fest": "5.4.4"
@@ -18,6 +20,8 @@
   "devDependencies": {
     "@types/three": "0.182.0",
     "vite-plugin-checker": "0.12.0",
-    "vite-plugin-glsl": "1.5.5"
+    "vite-plugin-glsl": "1.5.5",
+    "vite-plugin-wasm": "3.5.0",
+    "xml2js": "0.6.2"
   }
 }

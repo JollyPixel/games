@@ -20,4 +20,5 @@ export interface GameContext {
   events: typeof EventsMap;
   audioManager: GlobalAudioManager;
   audioSfx: AudioLibrary;
+  baseGroundY: number;
 }

@@ -150,7 +150,7 @@ export class LightedTile extends ActorComponent<GameContext> {
       this.#baseLightIntensity,
       light.distance ?? 6
     );
-    this.#light.position.set(0, 0.3, 0);
+    this.#light.position.set(0, this.context.baseGroundY + 0.3, 0);
     this.group.add(this.#light);
 
     if (pulse) {
@@ -291,7 +291,9 @@ export class LightedTile extends ActorComponent<GameContext> {
   setPosition(
     position: THREE.Vector3
   ) {
-    this.group.position.set(position.x, 0.01, position.z);
+    const { baseGroundY } = this.context;
+
+    this.group.position.set(position.x, baseGroundY + 0.01, position.z);
   }
 
   update() {
