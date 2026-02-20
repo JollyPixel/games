@@ -2,62 +2,34 @@
 import {
   Systems,
   ModelRenderer,
-  UIRenderer
+  UIRenderer,
+  Actor
 } from "@jolly-pixel/engine";
+import {
+  VoxelRenderer
+} from "@jolly-pixel/voxel.renderer";
 import * as THREE from "three";
 
 // Import Internal Dependencies
 import { createWorldRenderPass, OverlayPass } from "../passes/index.ts";
 import * as components from "../components/index.ts";
-import * as Voxel from "../components/voxel/index.ts";
 import { type GameContext } from "../globals.ts";
 
-// CONSTANTS
-const kTilesType = {
-  Floor: -1,
-  Empty: 0,
-  Wall: 1,
-  DemiWall: 2
-} as const;
-
-export interface DefaultSceneOptions {
-  /**
-   * @default false
-   */
-  debug?: boolean;
-}
-
 export class DefaultScene extends Systems.Scene<GameContext> {
-  grid = new Voxel.Grid(
-    [
-      [2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2],
-      [2, "TP_A", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "TP_B", 2],
-      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-      [2, 0, 0, 0, 0, 0, 0, 0, "Spawn", 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-      [2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2]
-    ],
-    new Voxel.TileType(kTilesType)
-  );
-  tileset: Voxel.TileSet<keyof typeof kTilesType>;
   initializeRenderPass: ReturnType<typeof createWorldRenderPass>;
   overlayPass = new OverlayPass(0x000000);
 
   constructor(
-    world: Systems.World<THREE.WebGLRenderer, GameContext>,
-    options: DefaultSceneOptions = {}
+    world: Systems.World<THREE.WebGLRenderer, GameContext>
   ) {
     super("DefaultScene");
 
     this.overlayPass.uniforms.uOpacity.value = 1;
 
-    const { debug = false } = options;
     this.initializeRenderPass = createWorldRenderPass(world, {
       renderMode: "composer",
       overlayPass: this.overlayPass,
-      debug
+      debug: world.debug
     });
 
     const webglRenderer = world.renderer.getSource();
@@ -65,77 +37,12 @@ export class DefaultScene extends Systems.Scene<GameContext> {
     webglRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const scene = world.sceneManager.getSource();
+    // scene.add(new THREE.AmbientLight("white", Math.PI));
     scene.background = new THREE.Color(0x000000);
     scene.add(new THREE.AmbientLight("white", 0.3));
 
     // scene.background = null;
     // scene.add(new THREE.AmbientLight("white", 2));
-
-    this.tileset = new Voxel.TileSet<keyof typeof kTilesType>(
-      new THREE.TextureLoader(
-        world.loadingManager
-      ).load("textures/Tileset001.png"),
-      {
-        tileWidth: 32,
-        tileHeight: 32,
-        tiles: {
-          Floor: [
-            { x: 0, y: 1 },
-            { x: 1, y: 1 },
-            { x: 2, y: 1 },
-            { x: 3, y: 1 },
-            { x: 4, y: 1 },
-            { x: 5, y: 1 },
-            { x: 6, y: 1 },
-            { x: 7, y: 1 },
-            { x: 8, y: 1 }
-          ],
-          Wall: [
-            { x: 2, y: 0 }
-          ],
-          DemiWall: [
-            { x: 2, y: 0 }
-          ]
-        }
-      }
-    );
-
-    this.grid.customTile.add("Spawn", (actor, position) => {
-      const tile = actor.addComponentAndGet(components.LightedTile, {
-        color: 0x0066ff,
-        pulse: { min: 0.25, max: 1, duration: 1500 },
-        positionalAudio: {}
-      });
-      tile.setPosition(position);
-
-      return tile.group;
-    });
-    this.grid.customTile.add("TP_A", (actor, position) => {
-      actor.addComponent(components.Teleport, {
-        destination: "TP_B",
-        position
-      });
-
-      const tile = actor.addComponentAndGet(components.LightedTile, {
-        color: new THREE.Color("tomato")
-      });
-      tile.setPosition(position);
-
-      return tile.group;
-    });
-    this.grid.customTile.add("TP_B", (actor, position) => {
-      actor.addComponent(components.Teleport, {
-        destination: "TP_A",
-        position
-      });
-
-      const tile = actor.addComponentAndGet(components.LightedTile, {
-        color: new THREE.Color("green")
-      });
-      tile.setPosition(position);
-
-      return tile.group;
-    });
 
     world.createActor("UIScreen")
       .addComponent(UIRenderer)
@@ -145,7 +52,18 @@ export class DefaultScene extends Systems.Scene<GameContext> {
       .addComponent(components.Grid, { ratio: 4, size: 32 });
 
     world.createActor("Terrain", { parent: game })
-      .addComponent(components.Terrain, { tileset: this.tileset, grid: this.grid });
+      .addComponent(VoxelRenderer, {
+        material: "standard",
+        materialCustomizer: (material) => {
+          if (material instanceof THREE.MeshStandardMaterial) {
+            material.metalness = 0;
+            material.roughness = 0.85;
+          }
+        }
+      })
+      .addComponent(components.VoxelMap, {
+        onCustomTileInit
+      });
 
     world.createActor("Player", { parent: game })
       .addComponent(components.Player)
@@ -160,3 +78,44 @@ export class DefaultScene extends Systems.Scene<GameContext> {
       });
   }
 }
+
+function onCustomTileInit(
+  actor: Actor<GameContext>,
+  tile: components.VoxelCustomTile
+): THREE.Object3D | void {
+  const { name, position, properties } = tile;
+
+  if (name === "Spawn") {
+    const lightedTile = actor.addComponentAndGet(components.LightedTile, {
+      color: 0x0066ff,
+      pulse: { min: 0.25, max: 1, duration: 1500 },
+      positionalAudio: {}
+    });
+    lightedTile.setPosition(position);
+
+    return lightedTile.group;
+  }
+  else if (name.startsWith("TP_")) {
+    const destination = properties.target;
+    if (typeof destination !== "string") {
+      console.warn(`Teleport tile "${name}" is missing a valid "target" property.`);
+
+      return void 0;
+    }
+
+    actor.addComponent(components.Teleport, {
+      destination,
+      position
+    });
+
+    const tile = actor.addComponentAndGet(components.LightedTile, {
+      color: new THREE.Color("green")
+    });
+    tile.setPosition(position);
+
+    return tile.group;
+  }
+
+  return void 0;
+}
+

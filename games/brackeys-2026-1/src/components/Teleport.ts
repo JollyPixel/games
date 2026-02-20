@@ -5,7 +5,7 @@ import * as THREE from "three";
 // Import Internal Dependencies
 import { Detection, type DetectionOptions } from "./Detection.ts";
 import type { Overlay } from "./Overlay.ts";
-import type { Terrain } from "./voxel/Terrain.ts";
+import type { VoxelMap } from "./VoxelMap.ts";
 import type { GameContext } from "../globals.ts";
 import * as utils from "../utils/index.ts";
 
@@ -40,13 +40,13 @@ export class Teleport extends Detection {
     if (typeof this.#destination === "string") {
       const terrain = tree
         .getActor("Terrain")!
-        .getComponent<Terrain>("TerrainBehavior")!;
+        .getComponent<VoxelMap>("VoxelMap")!;
 
-      const pos = terrain.getCustomTileFirstPosition(this.#destination);
+      const pos = terrain.getTileByName(this.#destination);
       if (!pos) {
         throw new Error(`Teleport: custom tile "${this.#destination}" not found`);
       }
-      this.#resolvedDestination = pos.clone();
+      this.#resolvedDestination = pos.position.clone();
     }
     else {
       this.#resolvedDestination = this.#destination.clone();

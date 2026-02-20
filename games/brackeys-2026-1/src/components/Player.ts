@@ -8,7 +8,11 @@ import {
 import * as THREE from "three";
 
 // Import Internal Dependencies
-import { Terrain, type Camera, type GameScreen } from "./index.ts";
+import {
+  type VoxelMap,
+  type Camera,
+  type GameScreen
+} from "./index.ts";
 import type { GameContext } from "../globals.ts";
 import * as utils from "../utils/index.ts";
 
@@ -27,7 +31,7 @@ export interface PlayerOptions {
 }
 
 export class Player extends ActorComponent<GameContext> {
-  #terrain: Terrain;
+  #terrain: VoxelMap;
   #camera: Camera;
   #model: ModelRenderer;
 
@@ -66,8 +70,6 @@ export class Player extends ActorComponent<GameContext> {
   warpToPosition(
     position: THREE.Vector3
   ) {
-    position.y += 0.5;
-
     this.#moving = false;
     this.#rollProgress = 0;
     this.actor.transform.setLocalPosition(position);
@@ -78,10 +80,10 @@ export class Player extends ActorComponent<GameContext> {
   warpToSpawn() {
     const { events } = this.context;
 
-    const spawn = this.#terrain.getCustomTileFirstPosition("Spawn");
+    const spawn = this.#terrain.getTileByName("Spawn");
     if (spawn) {
       events.PlayerRespawned.emit();
-      this.warpToPosition(spawn.clone());
+      this.warpToPosition(spawn.position.clone());
     }
   }
 
@@ -98,7 +100,7 @@ export class Player extends ActorComponent<GameContext> {
 
   awake(): void {
     const light = new THREE.PointLight(0x00ff44, 2, 12, 1.5);
-    light.position.set(0, 1.5, 0);
+    light.position.set(0, this.context.baseGroundY + 0.5, 0);
 
     this.actor.addChildren(light);
   }
@@ -117,7 +119,7 @@ export class Player extends ActorComponent<GameContext> {
 
     this.#terrain = tree
       .getActor("Terrain")!
-      .getComponent<Terrain>("TerrainBehavior")!;
+      .getComponent<VoxelMap>("VoxelMap")!;
     this.#camera = cameraActor.getComponent<Camera>(
       "CameraBehavior"
     )!;

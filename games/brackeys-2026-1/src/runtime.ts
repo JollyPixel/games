@@ -19,12 +19,10 @@ if (!canvasHTMLElement) {
   throw new Error("HTMLCanvasElement not found");
 }
 
-const debug = true;
-
 const audio = new GlobalAudio();
 const runtime = new Runtime<GameContext>(canvasHTMLElement, {
   // Displays a stats.js FPS panel — useful during development
-  includePerformanceStats: debug,
+  includePerformanceStats: true,
   audio,
   context: {
     paused: true,
@@ -33,7 +31,8 @@ const runtime = new Runtime<GameContext>(canvasHTMLElement, {
     },
     events: EventsMap,
     audioManager: null as unknown as GameContext["audioManager"],
-    audioSfx: null as unknown as GameContext["audioSfx"]
+    audioSfx: null as unknown as GameContext["audioSfx"],
+    baseGroundY: 1
   }
 });
 
@@ -60,9 +59,9 @@ const bg = new AudioBackground({
 });
 
 audio.observe(bg);
-audio.volume = 0.15;
+audio.volume = 0.25;
 
-const defaultScene = new DefaultScene(runtime.world, { debug });
+const defaultScene = new DefaultScene(runtime.world);
 
 canvasHTMLElement.addEventListener("click", async() => {
   await bg.play("main.ambiant");

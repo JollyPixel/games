@@ -1,5 +1,4 @@
 export * from "./Camera.ts";
-export * from "./voxel/Terrain.ts";
 export * from "./Player.ts";
 export * from "./Grid.ts";
 export * from "./Overlay.ts";
@@ -9,3 +8,4 @@ export * from "./Teleport.ts";
 export * from "./GameScreen.ts";
 export * from "./Glitch.ts";
 export * from "./Door.ts";
+export * from "./VoxelMap.ts";
