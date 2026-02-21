@@ -37,12 +37,9 @@ export class DefaultScene extends Systems.Scene<GameContext> {
     webglRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const scene = world.sceneManager.getSource();
-    // scene.add(new THREE.AmbientLight("white", Math.PI));
+
     scene.background = new THREE.Color(0x000000);
     scene.add(new THREE.AmbientLight("white", 0.3));
-
-    // scene.background = null;
-    // scene.add(new THREE.AmbientLight("white", 2));
 
     world.createActor("UIScreen")
       .addComponent(UIRenderer)
