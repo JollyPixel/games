@@ -11,11 +11,11 @@
   },
   "dependencies": {
     "@jolly-pixel/engine": "2.5.0",
-    "@jolly-pixel/runtime": "3.2.0",
-    "@jolly-pixel/voxel.renderer": "1.1.0",
+    "@jolly-pixel/runtime": "3.3.0",
+    "@jolly-pixel/voxel.renderer": "1.4.0",
     "@tweenjs/tween.js": "25.0.0",
-    "three": "0.182.0",
-    "type-fest": "5.4.4"
+    "three": "0.183.2",
+    "type-fest": "5.5.0"
   },
   "devDependencies": {
     "@types/three": "0.182.0",
